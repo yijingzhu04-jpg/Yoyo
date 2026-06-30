@@ -82,21 +82,40 @@
       animation-duration: 0.25s;
     }
 
+    /* Asymmetric, multi-colour pinwheel so the rotation is unmistakable. */
     .yoyo-face {
       width: 100%;
       height: 100%;
       border-radius: 50%;
       background:
-        repeating-conic-gradient(
+        conic-gradient(
           from 0deg,
-          var(--accent) 0deg 30deg,
-          #ffffff 30deg 60deg
+          #ff5d8f 0deg 60deg,
+          #ffd166 60deg 120deg,
+          #06d6a0 120deg 180deg,
+          #118ab2 180deg 240deg,
+          #9b5de5 240deg 300deg,
+          #ffffff 300deg 360deg
         );
       border: 8px solid #2a1b4d;
       position: relative;
       box-shadow:
         inset 0 0 0 6px var(--accent-2),
         inset 0 0 40px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Bright marker near the rim — a clear visual cue for the spin. */
+    .yoyo-face::before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      width: 16px;
+      height: 16px;
+      margin-left: -8px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.9);
     }
 
     .yoyo-face::after {
