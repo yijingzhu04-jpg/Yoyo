@@ -1,0 +1,44 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  color: #111111;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.game-wrap {
+  width: min(96vw, 960px);
+  text-align: center;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(28px, 5vw, 48px);
+  letter-spacing: 0.16em;
+  font-weight: 700;
+}
+
+.instructions {
+  margin: 0 0 18px;
+  color: #555555;
+  font-size: 15px;
+}
+
+canvas {
+  width: 100%;
+  max-width: 900px;
+  aspect-ratio: 3 / 2;
+  display: block;
+  margin: 0 auto;
+  border: 1px solid #eeeeee;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.08);
+}
