@@ -28,15 +28,15 @@ const outsideExit = {
   height: 56
 };
 
-// Simple wall rectangles inside the maze. The gaps leave one beginner-friendly route.
+// Simple wall rectangles inside the maze. The gaps create an easy zig-zag route.
 const walls = [
   { x: 310, y: 100, width: 18, height: 245 },
   { x: 380, y: 220, width: 18, height: 240 },
   { x: 470, y: 100, width: 18, height: 245 },
-  { x: 560, y: 220, width: 18, height: 240 },
-  { x: 310, y: 160, width: 120, height: 18 },
-  { x: 470, y: 300, width: 120, height: 18 },
-  { x: 380, y: 390, width: 130, height: 18 }
+  { x: 560, y: 220, width: 18, height: 150 },
+  { x: 250, y: 230, width: 60, height: 18 },
+  { x: 398, y: 150, width: 60, height: 18 },
+  { x: 488, y: 405, width: 72, height: 18 }
 ];
 
 let insideBall;
@@ -102,12 +102,19 @@ function moveOutsideBall(dx, dy) {
 }
 
 function moveBallByAxis(ball, dx, dy, isMoveAllowed) {
-  ball.x += dx;
-  ball.y += dy;
+  const steps = Math.max(1, Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) / moveSpeed));
+  const stepX = dx / steps;
+  const stepY = dy / steps;
 
-  if (!isMoveAllowed()) {
-    ball.x -= dx;
-    ball.y -= dy;
+  for (let i = 0; i < steps; i += 1) {
+    ball.x += stepX;
+    ball.y += stepY;
+
+    if (!isMoveAllowed()) {
+      ball.x -= stepX;
+      ball.y -= stepY;
+      break;
+    }
   }
 }
 
