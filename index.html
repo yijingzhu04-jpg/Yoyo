@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YO-YO Connected Maze</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="game-shell">
+    <h1>YO-YO Connected Maze</h1>
+
+    <canvas id="gameCanvas" width="900" height="600" aria-label="YO-YO Connected Maze game"></canvas>
+
+    <section class="panel" aria-live="polite">
+      <p><strong>Player 1:</strong> W A S D moves the black ball inside the maze.</p>
+      <p><strong>Player 2:</strong> Arrow keys move the white ball outside the maze.</p>
+      <p><strong>Goal:</strong> reach both green exits at the same time. Press <strong>R</strong> to restart.</p>
+      <p id="status">Guide both Yo-Yos to their exits together.</p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
