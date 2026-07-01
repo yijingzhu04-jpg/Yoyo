@@ -18,6 +18,7 @@ const ballRadius = 14;
 const finishRadius = 38;
 const idealStringLength = 190;
 const maxStringLength = 245;
+const maxPullForce = 0.7;
 
 const blackBall = {
   x: 120,
@@ -106,7 +107,7 @@ function applyStringPull() {
   const ny = dy / distance;
   const stretch = distance - idealStringLength;
   const pullStrength = stretch > maxStringLength - idealStringLength ? 0.032 : 0.014;
-  const force = stretch * pullStrength;
+  const force = Math.min(stretch * pullStrength, maxPullForce);
 
   // Both balls are gently pulled toward the other end of the string.
   blackBall.vx += nx * force;
@@ -188,7 +189,7 @@ function update() {
   if (!game.won) {
     game.time += 0.016;
 
-    updateBallFromInput(blackBall, "w", "s", "a", "d");
+    updateBallFromInput(blackBall, "KeyW", "KeyS", "KeyA", "KeyD");
     updateBallFromInput(whiteBall, "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight");
 
     applyStringPull();
@@ -310,11 +311,11 @@ window.addEventListener("keydown", (event) => {
   const key = getKeyName(event);
   keys[key] = true;
 
-  if (key.startsWith("Arrow")) {
+  if (isGameKey(key)) {
     event.preventDefault();
   }
 
-  if (key === "r") {
+  if (key === "KeyR") {
     resetGame();
   }
 });
@@ -323,13 +324,17 @@ window.addEventListener("keyup", (event) => {
   const key = getKeyName(event);
   keys[key] = false;
 
-  if (key.startsWith("Arrow")) {
+  if (isGameKey(key)) {
     event.preventDefault();
   }
 });
 
 function getKeyName(event) {
-  return event.key.length === 1 ? event.key.toLowerCase() : event.key;
+  return event.code || event.key;
+}
+
+function isGameKey(key) {
+  return ["KeyW", "KeyA", "KeyS", "KeyD", "KeyR", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key);
 }
 
 resetGame();
