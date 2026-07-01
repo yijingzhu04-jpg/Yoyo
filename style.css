@@ -1,0 +1,47 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #fff;
+  color: #111;
+  font-family: Arial, Helvetica, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-wrap {
+  width: min(92vw, 860px);
+  text-align: center;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 34px;
+  letter-spacing: 2px;
+}
+
+header p,
+.status p {
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+canvas {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  display: block;
+  margin: 18px auto 12px;
+  background: #fff;
+  border: 3px solid #111;
+}
+
+#message {
+  min-height: 24px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
