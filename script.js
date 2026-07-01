@@ -184,7 +184,7 @@ function updateGame() {
 
   game.stringLength = Math.max(game.minString, Math.min(game.maxString, game.stringLength));
 
-  const speed = 0.6 + (game.stringLength - game.minString) / 28;
+  const speed = 0.35 + (game.stringLength - game.minString) / 42;
   game.x += Math.cos(game.angle) * speed;
   game.y += Math.sin(game.angle) * speed;
 
