@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YOYO MAZE</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="game-shell">
+    <section class="title-card">
+      <p class="eyebrow">Co-op Canvas Puzzle</p>
+      <h1>YOYO MAZE</h1>
+      <p class="intro">
+        Two players share one Yo-Yo. Player 1 controls its swing direction,
+        while Player 2 controls how much string is let out.
+      </p>
+    </section>
+
+    <section class="game-panel">
+      <canvas id="gameCanvas" width="900" height="600" aria-label="YOYO MAZE game canvas"></canvas>
+      <div class="status-bar">
+        <p id="gameMessage">Work together: reach FINISH without hitting walls or holes.</p>
+        <button id="resetButton" type="button">Reset Maze</button>
+      </div>
+    </section>
+
+    <section class="controls">
+      <article>
+        <h2>Player 1: Direction</h2>
+        <p><kbd>A</kbd> rotate left</p>
+        <p><kbd>D</kbd> rotate right</p>
+      </article>
+
+      <article>
+        <h2>Player 2: String Length</h2>
+        <p><kbd>W</kbd> reel in</p>
+        <p><kbd>S</kbd> let out</p>
+      </article>
+
+      <article>
+        <h2>Shared Goal</h2>
+        <p>Avoid dark maze walls and blue holes.</p>
+        <p>Press <kbd>R</kbd> to restart any time.</p>
+      </article>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
