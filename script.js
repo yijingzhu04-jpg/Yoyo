@@ -86,12 +86,16 @@ function resetGame() {
 function buildDots() {
   dots.length = 0;
 
-  for (const [xPercent, yPercent, radius, phase] of dotMap) {
+  for (let i = 0; i < dotMap.length; i++) {
+    const [xPercent, yPercent, radius, phase] = dotMap[i];
+
     dots.push({
       xPercent,
       yPercent,
       baseRadius: radius,
-      phase
+      phase,
+      moveSpeed: 0.35 + i * 0.025,
+      moveRangePercent: 0.025 + i * 0.0012
     });
   }
 }
@@ -181,20 +185,20 @@ function keepBallOnCanvas(ball) {
 
 function hitsAnyDot(time) {
   for (const dot of dots) {
-    const dotX = dot.xPercent * width;
-    const dotY = dot.yPercent * height;
-    const dotRadius = pulsingRadius(dot, time);
+    const position = dotPosition(dot, time);
 
-    const blackHit = distance(blackBall.x, blackBall.y, dotX, dotY) < playerRadius + dotRadius;
-    const whiteHit = distance(whiteBall.x, whiteBall.y, dotX, dotY) < playerRadius + dotRadius;
+    const blackDistance = distance(blackBall.x, blackBall.y, position.x, position.y);
+    const whiteDistance = distance(whiteBall.x, whiteBall.y, position.x, position.y);
+    const blackHit = blackDistance < playerRadius + dot.baseRadius;
+    const whiteHit = whiteDistance < playerRadius + dot.baseRadius;
     const stringHit = pointToSegmentDistance(
-      dotX,
-      dotY,
+      position.x,
+      position.y,
       blackBall.x,
       blackBall.y,
       whiteBall.x,
       whiteBall.y
-    ) < dotRadius + 2;
+    ) < dot.baseRadius + 2;
 
     if (blackHit || whiteHit || stringHit) {
       return true;
@@ -239,11 +243,13 @@ function drawDots(time) {
   ctx.fillStyle = "rgba(120, 120, 120, 0.25)";
 
   for (const dot of dots) {
+    const position = dotPosition(dot, time);
+
     ctx.beginPath();
     ctx.arc(
-      dot.xPercent * width,
-      dot.yPercent * height,
-      pulsingRadius(dot, time),
+      position.x,
+      position.y,
+      dot.baseRadius,
       0,
       Math.PI * 2
     );
@@ -305,8 +311,15 @@ function drawMessages() {
   ctx.restore();
 }
 
-function pulsingRadius(dot, time) {
-  return dot.baseRadius + Math.sin(time * 1.8 + dot.phase) * 4;
+function dotPosition(dot, time) {
+  // Each dot keeps its x value and glides vertically at its own slow pace.
+  const wave = Math.sin(time * dot.moveSpeed + dot.phase);
+  const verticalOffset = wave * dot.moveRangePercent * height;
+
+  return {
+    x: dot.xPercent * width,
+    y: dot.yPercent * height + verticalOffset
+  };
 }
 
 function pointToSegmentDistance(px, py, ax, ay, bx, by) {
