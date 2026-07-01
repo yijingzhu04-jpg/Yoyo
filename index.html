@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yo-Yo Together</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <section class="hud" aria-label="Game information">
+      <div>
+        <p class="eyebrow">Yo-Yo Together</p>
+        <h1>Co-op Rolling Platformer</h1>
+      </div>
+      <div class="score-panel">
+        <span>Distance</span>
+        <strong id="score">0 m</strong>
+      </div>
+      <button id="restartButton" type="button">Restart</button>
+    </section>
+
+    <canvas id="gameCanvas" width="1280" height="720" aria-label="Yo-Yo Together game canvas"></canvas>
+
+    <section class="instructions" aria-label="Controls">
+      <article>
+        <h2>Player 1</h2>
+        <p><kbd>A</kbd> / <kbd>D</kbd> roll &middot; <kbd>W</kbd> jump</p>
+      </article>
+      <article>
+        <h2>Player 2</h2>
+        <p><kbd>&larr;</kbd> / <kbd>&rarr;</kbd> roll &middot; <kbd>&uarr;</kbd> jump</p>
+      </article>
+      <article>
+        <h2>Goal</h2>
+        <p>Work together to survive the auto-scrolling world as long as possible.</p>
+      </article>
+    </section>
+  </main>
+
+  <script src="playerInput.js"></script>
+  <script src="physics.js"></script>
+  <script src="level.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
