@@ -17,10 +17,7 @@ const starts = {
   player2: { x: 745, y: 465 }
 };
 
-const finishZones = {
-  player1: { x: 690, y: 35, width: 75, height: 75, label: "P1 FINISH" },
-  player2: { x: 35, y: 410, width: 75, height: 75, label: "P2 FINISH" }
-};
+const finishSpot = { x: 355, y: 225, width: 90, height: 70, label: "CENTER FINISH" };
 
 // Every wall is a rectangle. This keeps drawing and collision simple.
 const walls = [
@@ -36,11 +33,10 @@ const walls = [
   { x: 100, y: 95, width: 18, height: 155 },
   { x: 220, y: 170, width: 18, height: 185 },
   { x: 330, y: 95, width: 18, height: 160 },
-  { x: 430, y: 95, width: 18, height: 180 },
+  { x: 430, y: 95, width: 18, height: 105 },
   { x: 555, y: 170, width: 18, height: 185 },
   { x: 665, y: 95, width: 18, height: 255 },
   { x: 100, y: 250, width: 130, height: 18 },
-  { x: 330, y: 255, width: 118, height: 18 },
   { x: 555, y: 350, width: 128, height: 18 },
   { x: 118, y: 355, width: 330, height: 18 },
   { x: 430, y: 355, width: 18, height: 95 },
@@ -54,7 +50,7 @@ const players = [
     color: "#111",
     outline: "#111",
     controls: { up: "w", down: "s", left: "a", right: "d" },
-    finish: finishZones.player1,
+    finish: finishSpot,
     start: starts.player1
   },
   {
@@ -62,7 +58,7 @@ const players = [
     color: "#fff",
     outline: "#111",
     controls: { up: "arrowup", down: "arrowdown", left: "arrowleft", right: "arrowright" },
-    finish: finishZones.player2,
+    finish: finishSpot,
     start: starts.player2
   }
 ];
@@ -75,9 +71,10 @@ function resetGame() {
     player.y = player.start.y;
     player.trail = [{ x: player.x, y: player.y }];
     player.inFinish = false;
+    player.wasInFinish = false;
   });
 
-  message.textContent = "Both players must be inside their finish zones at the same time.";
+  message.textContent = "Both players must enter the center finish at the same time.";
   gameWon = false;
 }
 
@@ -86,6 +83,10 @@ resetGame();
 window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
   keys[key] = true;
+
+  if (["arrowup", "arrowdown", "arrowleft", "arrowright"].includes(key)) {
+    event.preventDefault();
+  }
 
   if (key === "r") {
     resetGame();
@@ -166,16 +167,22 @@ function addTrailPoint(player) {
 
 function updateFinishStatus() {
   players.forEach((player) => {
+    player.wasInFinish = player.inFinish;
     player.inFinish = circleInsideRect(player.x, player.y, ballRadius, player.finish);
   });
 
-  if (players.every((player) => player.inFinish)) {
+  const bothInFinish = players.every((player) => player.inFinish);
+  const bothJustArrived = players.every((player) => player.inFinish && !player.wasInFinish);
+
+  if (bothInFinish && bothJustArrived) {
     gameWon = true;
     message.textContent = "You Win! Press R to restart.";
+  } else if (bothInFinish) {
+    message.textContent = "Too late! Leave the center and enter together to win.";
   } else if (players.some((player) => player.inFinish)) {
-    message.textContent = "One player is ready. Wait there until both balls finish together!";
+    message.textContent = "One ball arrived early. Both must enter the center together!";
   } else {
-    message.textContent = "Both players must be inside their finish zones at the same time.";
+    message.textContent = "Both players must enter the center finish at the same time.";
   }
 }
 
@@ -248,8 +255,7 @@ function drawMaze() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  drawFinishZone(finishZones.player1, "#111", "#fff");
-  drawFinishZone(finishZones.player2, "#fff", "#111");
+  drawFinishZone(finishSpot, "#fff", "#111");
   drawStartArea(starts.player1.x, starts.player1.y, "P1 START");
   drawStartArea(starts.player2.x, starts.player2.y, "P2 START");
   drawMaze();
