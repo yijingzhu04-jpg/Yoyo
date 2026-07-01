@@ -72,8 +72,8 @@ const controls = {
 const keys = {
   a: "left",
   d: "right",
-  w: "in",
-  s: "out"
+  k: "in",
+  l: "out"
 };
 
 let game;
