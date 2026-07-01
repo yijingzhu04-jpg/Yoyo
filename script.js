@@ -14,8 +14,8 @@ let dots;
 let won = false;
 
 const finishZones = {
-  black: { x: 76, y: 76, radius: 42, label: "BLACK" },
-  white: { x: canvas.width - 76, y: canvas.height - 76, radius: 42, label: "WHITE" }
+  black: { x: 365, y: 78, radius: 42, label: "BLACK" },
+  white: { x: 595, y: 78, radius: 42, label: "WHITE" }
 };
 
 // A hand-placed field keeps the game predictable while still feeling alive.
@@ -29,8 +29,8 @@ const dotLayout = [
 ];
 
 function resetGame() {
-  blackBall = createBall(120, canvas.height - 95, "#111");
-  whiteBall = createBall(canvas.width - 120, 95, "#fff");
+  blackBall = createBall(365, canvas.height - 75, "#111");
+  whiteBall = createBall(595, canvas.height - 75, "#fff");
   dots = dotLayout.map(([x, y, radius, phase]) => ({ x, y, radius, phase }));
   won = false;
 }
@@ -47,15 +47,21 @@ function createBall(x, y, color) {
 }
 
 function handleInput() {
-  if (keys.w) blackBall.vy -= moveForce;
-  if (keys.s) blackBall.vy += moveForce;
-  if (keys.a) blackBall.vx -= moveForce;
-  if (keys.d) blackBall.vx += moveForce;
+  const waiting = getWaitingState();
 
-  if (keys.ArrowUp) whiteBall.vy -= moveForce;
-  if (keys.ArrowDown) whiteBall.vy += moveForce;
-  if (keys.ArrowLeft) whiteBall.vx -= moveForce;
-  if (keys.ArrowRight) whiteBall.vx += moveForce;
+  if (!waiting.black) {
+    if (keys.w) blackBall.vy -= moveForce;
+    if (keys.s) blackBall.vy += moveForce;
+    if (keys.a) blackBall.vx -= moveForce;
+    if (keys.d) blackBall.vx += moveForce;
+  }
+
+  if (!waiting.white) {
+    if (keys.ArrowUp) whiteBall.vy -= moveForce;
+    if (keys.ArrowDown) whiteBall.vy += moveForce;
+    if (keys.ArrowLeft) whiteBall.vx -= moveForce;
+    if (keys.ArrowRight) whiteBall.vx += moveForce;
+  }
 }
 
 function applyStringTension() {
@@ -120,6 +126,34 @@ function resolveDotCollisions(time) {
   });
 }
 
+function holdWaitingBalls() {
+  const waiting = getWaitingState();
+
+  if (waiting.black) {
+    holdBallInZone(blackBall, finishZones.black);
+  }
+  if (waiting.white) {
+    holdBallInZone(whiteBall, finishZones.white);
+  }
+}
+
+function holdBallInZone(ball, zone) {
+  ball.vx *= 0.55;
+  ball.vy *= 0.55;
+  ball.x += (zone.x - ball.x) * 0.08;
+  ball.y += (zone.y - ball.y) * 0.08;
+}
+
+function getWaitingState() {
+  const blackFinished = isInsideZone(blackBall, finishZones.black);
+  const whiteFinished = isInsideZone(whiteBall, finishZones.white);
+
+  return {
+    black: blackFinished && !whiteFinished,
+    white: whiteFinished && !blackFinished
+  };
+}
+
 function bounceAwayFromDot(ball, dot, dotRadius) {
   const dx = ball.x - dot.x;
   const dy = ball.y - dot.y;
@@ -161,6 +195,7 @@ function update(time) {
     updateBall(blackBall);
     updateBall(whiteBall);
     resolveDotCollisions(time);
+    holdWaitingBalls();
     checkWin();
   }
 }
@@ -209,7 +244,7 @@ function drawDots(time) {
 
 function drawString() {
   const distance = Math.hypot(whiteBall.x - blackBall.x, whiteBall.y - blackBall.y);
-  const stretchRatio = Math.max(0, (distance - idealStringLength) / (maxStringLength - idealStringLength));
+  const stretchRatio = Math.min(1, Math.max(0, (distance - idealStringLength) / (maxStringLength - idealStringLength)));
   const isOverstretched = distance > maxStringLength;
 
   ctx.save();
@@ -270,6 +305,11 @@ function gameLoop(time) {
 }
 
 window.addEventListener("keydown", (event) => {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key)) {
+    event.preventDefault();
+  }
+
+  keys[event.key.toLowerCase()] = true;
   keys[event.key] = true;
 
   if (event.key.toLowerCase() === "r") {
@@ -278,6 +318,7 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
+  keys[event.key.toLowerCase()] = false;
   keys[event.key] = false;
 });
 
