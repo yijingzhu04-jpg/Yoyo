@@ -14,8 +14,8 @@ let dots;
 let won = false;
 
 const finishZones = {
-  black: { x: 365, y: 78, radius: 42, label: "BLACK" },
-  white: { x: 595, y: 78, radius: 42, label: "WHITE" }
+  black: { x: 410, y: 78, radius: 42, label: "BLACK" },
+  white: { x: 550, y: 78, radius: 42, label: "WHITE" }
 };
 
 // A hand-placed field keeps the game predictable while still feeling alive.
