@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Click Moment</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(48, 116, 255, 0.23), transparent 32%),
+        radial-gradient(circle at 82% 22%, rgba(255, 88, 145, 0.18), transparent 30%),
+        radial-gradient(circle at 50% 92%, rgba(73, 255, 209, 0.13), transparent 35%),
+        linear-gradient(135deg, #070914 0%, #12142c 44%, #1a0d24 100%);
+      color: #f7fbff;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      filter: saturate(1.08);
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .timer {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      min-width: 116px;
+      transform: translateX(-50%);
+      padding: 10px 22px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      background: rgba(9, 13, 31, 0.52);
+      box-shadow: 0 0 34px rgba(80, 182, 255, 0.18), inset 0 0 18px rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 800;
+      line-height: 1;
+      text-align: center;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(12px);
+    }
+
+    .scoreboard {
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      display: grid;
+      gap: 10px;
+      width: min(320px, calc(100vw - 44px));
+      color: rgba(248, 252, 255, 0.92);
+      font-size: 14px;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+    }
+
+    .score-card {
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      background: rgba(10, 14, 32, 0.38);
+      box-shadow: 0 10px 34px rgba(0, 0, 0, 0.23), inset 0 0 22px rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(12px);
+    }
+
+    .score-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .blue {
+      color: #86dcff;
+    }
+
+    .red {
+      color: #ff9ab0;
+    }
+
+    .instructions {
+      position: absolute;
+      right: 22px;
+      bottom: 22px;
+      max-width: min(390px, calc(100vw - 44px));
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 20px;
+      background: rgba(8, 11, 27, 0.42);
+      box-shadow: 0 10px 34px rgba(0, 0, 0, 0.26);
+      color: rgba(245, 250, 255, 0.82);
+      font-size: 13px;
+      line-height: 1.45;
+      backdrop-filter: blur(12px);
+    }
+
+    .message-panel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: none;
+      width: min(720px, calc(100vw - 36px));
+      transform: translate(-50%, -50%);
+      padding: clamp(24px, 5vw, 48px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 30px;
+      background:
+        radial-gradient(circle at 28% 18%, rgba(79, 207, 255, 0.22), transparent 36%),
+        radial-gradient(circle at 72% 80%, rgba(255, 105, 150, 0.19), transparent 34%),
+        rgba(7, 10, 28, 0.72);
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.5), inset 0 0 50px rgba(255, 255, 255, 0.06);
+      text-align: center;
+      backdrop-filter: blur(18px);
+      pointer-events: auto;
+    }
+
+    .message-panel.visible {
+      display: block;
+      animation: panelIn 420ms ease-out both;
+    }
+
+    .message {
+      margin: 0;
+      font-size: clamp(26px, 5vw, 56px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      text-shadow: 0 0 26px rgba(118, 217, 255, 0.55), 0 0 46px rgba(255, 96, 148, 0.28);
+    }
+
+    .submessage {
+      margin: 14px auto 0;
+      max-width: 560px;
+      color: rgba(243, 249, 255, 0.76);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    button {
+      margin-top: 24px;
+      padding: 12px 22px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #77e5ff, #ff80aa);
+      box-shadow: 0 12px 34px rgba(255, 116, 166, 0.25), 0 0 30px rgba(101, 224, 255, 0.24);
+      color: #07101d;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+      pointer-events: auto;
+      transition: transform 160ms ease, filter 160ms ease;
+    }
+
+    button:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    .flash {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .flash.active {
+      animation: flash 820ms ease-out both;
+    }
+
+    .shake {
+      animation: shake 620ms cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes panelIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -47%) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    @keyframes flash {
+      0% { opacity: 0; }
+      12% { opacity: 0.95; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 1px, 0); }
+      30%, 50%, 70% { transform: translate3d(-5px, -2px, 0); }
+      40%, 60% { transform: translate3d(5px, 2px, 0); }
+    }
+
+    @media (max-width: 720px) {
+      .scoreboard {
+        top: auto;
+        bottom: 18px;
+      }
+
+      .instructions {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="Two-player Click Moment game"></canvas>
+  <div class="flash" id="flash"></div>
+  <div class="hud" id="hud">
+    <div class="timer" id="timer">60</div>
+    <div class="scoreboard" aria-live="polite">
+      <div class="score-card">
+        <div class="score-title"><span class="blue">Blue player</span><span class="pill">WASD + Q</span></div>
+        <div>Blue collected: <strong id="blueScore">0</strong>/<span id="blueTotal">0</span></div>
+        <div>Red particles carried: <strong id="blueWrong">0</strong></div>
+      </div>
+      <div class="score-card">
+        <div class="score-title"><span class="red">Red player</span><span class="pill">Arrows + /</span></div>
+        <div>Red collected: <strong id="redScore">0</strong>/<span id="redTotal">0</span></div>
+        <div>Blue particles carried: <strong id="redWrong">0</strong></div>
+      </div>
+    </div>
+    <div class="instructions">
+      Collect your own color before the 60 second countdown ends. If you scoop up the other color, carry it inside your glass ball and spit it out with <strong>Q</strong> for Blue or <strong>/</strong> for Red so the right player can collect it.
+    </div>
+    <div class="message-panel" id="messagePanel">
+      <p class="message" id="messageText"></p>
+      <p class="submessage" id="submessageText"></p>
+      <button id="restartButton" type="button">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const flash = document.getElementById("flash");
+    const hud = document.getElementById("hud");
+    const timerEl = document.getElementById("timer");
+    const blueScoreEl = document.getElementById("blueScore");
+    const redScoreEl = document.getElementById("redScore");
+    const blueTotalEl = document.getElementById("blueTotal");
+    const redTotalEl = document.getElementById("redTotal");
+    const blueWrongEl = document.getElementById("blueWrong");
+    const redWrongEl = document.getElementById("redWrong");
+    const messagePanel = document.getElementById("messagePanel");
+    const messageText = document.getElementById("messageText");
+    const submessageText = document.getElementById("submessageText");
+    const restartButton = document.getElementById("restartButton");
+
+    const keys = new Set();
+    const balls = [];
+    const spatParticles = [];
+    const sparks = [];
+    const stars = [];
+    const totalByColor = { blue: 20, red: 20 };
+    const collectedByColor = { blue: 0, red: 0 };
+
+    let width = 0;
+    let height = 0;
+    let lastTime = performance.now();
+    let startTime = performance.now();
+    let state = "playing";
+    let completionMessageShown = false;
+
+    const palettes = {
+      blue: {
+        core: "#64e8ff",
+        edge: "#2368ff",
+        glow: "rgba(75, 210, 255, 0.72)",
+        soft: "rgba(76, 205, 255, 0.22)"
+      },
+      red: {
+        core: "#ffb05e",
+        edge: "#ff3f85",
+        glow: "rgba(255, 82, 139, 0.72)",
+        soft: "rgba(255, 85, 137, 0.22)"
+      }
+    };
+
+    const players = {
+      blue: makePlayer("blue", 0.24, 0.54, 44, {
+        up: "w",
+        down: "s",
+        left: "a",
+        right: "d",
+        spit: "q"
+      }),
+      red: makePlayer("red", 0.76, 0.54, 44, {
+        up: "arrowup",
+        down: "arrowdown",
+        left: "arrowleft",
+        right: "arrowright",
+        spit: "/"
+      })
+    };
+
+    function makePlayer(color, px, py, radius, controls) {
+      return {
+        color,
+        targetColor: color,
+        wrongColor: color === "blue" ? "red" : "blue",
+        xRatio: px,
+        yRatio: py,
+        x: 0,
+        y: 0,
+        vx: 0,
+        vy: 0,
+        radius,
+        controls,
+        carried: [],
+        collectedParticles: [],
+        spitCooldown: 0
+      };
+    }
+
+    function resize() {
+      width = canvas.width = Math.floor(window.innerWidth * window.devicePixelRatio);
+      height = canvas.height = Math.floor(window.innerHeight * window.devicePixelRatio);
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      width = window.innerWidth;
+      height = window.innerHeight;
+
+      for (const star of stars) {
+        star.x = Math.random() * width;
+        star.y = Math.random() * height;
+      }
+
+      players.blue.x = clamp(players.blue.x || players.blue.xRatio * width, players.blue.radius + 10, width - players.blue.radius - 10);
+      players.blue.y = clamp(players.blue.y || players.blue.yRatio * height, players.blue.radius + 90, height - players.blue.radius - 10);
+      players.red.x = clamp(players.red.x || players.red.xRatio * width, players.red.radius + 10, width - players.red.radius - 10);
+      players.red.y = clamp(players.red.y || players.red.yRatio * height, players.red.radius + 90, height - players.red.radius - 10);
+    }
+
+    function initStars() {
+      stars.length = 0;
+      for (let i = 0; i < 115; i++) {
+        stars.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          r: Math.random() * 1.7 + 0.35,
+          alpha: Math.random() * 0.42 + 0.16,
+          twinkle: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function initGame() {
+      balls.length = 0;
+      spatParticles.length = 0;
+      sparks.length = 0;
+      collectedByColor.blue = 0;
+      collectedByColor.red = 0;
+      state = "playing";
+      completionMessageShown = false;
+      startTime = performance.now();
+      lastTime = performance.now();
+      messagePanel.classList.remove("visible");
+      flash.classList.remove("active");
+      hud.classList.remove("shake");
+
+      for (const player of Object.values(players)) {
+        player.x = player.xRatio * width;
+        player.y = player.yRatio * height;
+        player.vx = 0;
+        player.vy = 0;
+        player.carried.length = 0;
+        player.collectedParticles.length = 0;
+        player.spitCooldown = 0;
+      }
+
+      placeBalls("blue", totalByColor.blue);
+      placeBalls("red", totalByColor.red);
+      updateHud();
+    }
+
+    function placeBalls(color, count) {
+      const safeTop = 110;
+      const attemptsLimit = 400;
+
+      for (let i = 0; i < count; i++) {
+        let candidate = null;
+        for (let attempt = 0; attempt < attemptsLimit; attempt++) {
+          const r = random(11, 17);
+          const x = random(r + 24, width - r - 24);
+          const y = random(safeTop + r, height - r - 24);
+          const farFromPlayers = Object.values(players).every((player) => distance(x, y, player.x, player.y) > player.radius + r + 80);
+          const farFromBalls = balls.every((ball) => distance(x, y, ball.x, ball.y) > ball.r + r + 16);
+          if (farFromPlayers && farFromBalls) {
+            candidate = { x, y, r };
+            break;
+          }
+        }
+
+        if (!candidate) {
+          candidate = {
+            x: random(40, width - 40),
+            y: random(safeTop + 20, height - 40),
+            r: random(11, 17)
+          };
+        }
+
+        balls.push({
+          color,
+          x: candidate.x,
+          y: candidate.y,
+          r: candidate.r,
+          pulse: Math.random() * Math.PI * 2,
+          drift: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function update(dt, now) {
+      if (state === "playing" || state === "readyForClick") {
+        updatePlayers(dt);
+        updateBalls(dt);
+        updateSpatParticles(dt);
+        handleCollection();
+        checkCompletion(now);
+        updateTimer(now);
+      }
+
+      updateSparks(dt);
+    }
+
+    function updatePlayers(dt) {
+      for (const player of Object.values(players)) {
+        const controls = player.controls;
+        let ax = 0;
+        let ay = 0;
+
+        if (keys.has(controls.left)) ax -= 1;
+        if (keys.has(controls.right)) ax += 1;
+        if (keys.has(controls.up)) ay -= 1;
+        if (keys.has(controls.down)) ay += 1;
+
+        if (ax || ay) {
+          const length = Math.hypot(ax, ay) || 1;
+          ax /= length;
+          ay /= length;
+        }
+
+        const acceleration = 1120;
+        const drag = Math.pow(0.0018, dt);
+        player.vx = (player.vx + ax * acceleration * dt) * drag;
+        player.vy = (player.vy + ay * acceleration * dt) * drag;
+        const speed = Math.hypot(player.vx, player.vy);
+        const maxSpeed = 355;
+
+        if (speed > maxSpeed) {
+          player.vx = (player.vx / speed) * maxSpeed;
+          player.vy = (player.vy / speed) * maxSpeed;
+        }
+
+        player.x = clamp(player.x + player.vx * dt, player.radius + 8, width - player.radius - 8);
+        player.y = clamp(player.y + player.vy * dt, player.radius + 82, height - player.radius - 8);
+        player.spitCooldown = Math.max(0, player.spitCooldown - dt);
+
+        player.carried.forEach((particle, index) => orbitInsidePlayer(particle, player, index, player.carried.length, dt));
+        player.collectedParticles.forEach((particle, index) => orbitInsidePlayer(particle, player, index, player.collectedParticles.length, dt));
+      }
+    }
+
+    function updateBalls(dt) {
+      for (const ball of balls) {
+        ball.pulse += dt * 3.2;
+        ball.drift += dt * 1.5;
+      }
+    }
+
+    function updateSpatParticles(dt) {
+      for (let i = spatParticles.length - 1; i >= 0; i--) {
+        const p = spatParticles[i];
+        p.age += dt;
+        p.vx *= Math.pow(0.18, dt);
+        p.vy *= Math.pow(0.18, dt);
+        p.x += p.vx * dt;
+        p.y += p.vy * dt + Math.sin(p.age * 6 + p.seed) * 10 * dt;
+        p.r = p.baseR + Math.sin(p.age * 7) * 1.2;
+
+        if (p.age > 12) {
+          spatParticles.splice(i, 1);
+        }
+      }
+    }
+
+    function updateSparks(dt) {
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i];
+        s.age += dt;
+        s.vx *= Math.pow(s.drag, dt);
+        s.vy *= Math.pow(s.drag, dt);
+        s.vy += s.gravity * dt;
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        s.r *= Math.pow(0.96, dt * 60);
+        if (s.age >= s.life || s.r < 0.2) {
+          sparks.splice(i, 1);
+        }
+      }
+    }
+
+    function orbitInsidePlayer(particle, player, index, total, dt) {
+      particle.angle += particle.speed * dt;
+      const ring = player.radius * particle.orbit;
+      const spread = total > 1 ? (index / total) * Math.PI * 2 : 0;
+      particle.x = Math.cos(particle.angle + spread) * ring;
+      particle.y = Math.sin(particle.angle * 0.78 + spread) * ring * 0.72;
+      particle.pulse += dt * 5;
+    }
+
+    function handleCollection() {
+      for (let i = balls.length - 1; i >= 0; i--) {
+        const ball = balls[i];
+        for (const player of Object.values(players)) {
+          if (distance(player.x, player.y, ball.x, ball.y) <= player.radius + ball.r * 0.8) {
+            collectBall(player, ball);
+            balls.splice(i, 1);
+            break;
+          }
+        }
+      }
+
+      for (let i = spatParticles.length - 1; i >= 0; i--) {
+        const particle = spatParticles[i];
+        const correctPlayer = players[particle.color];
+
+        if (distance(correctPlayer.x, correctPlayer.y, particle.x, particle.y) <= correctPlayer.radius + particle.r) {
+          collectedByColor[particle.color] += 1;
+          correctPlayer.collectedParticles.push(makeInnerParticle(particle.color));
+          burst(particle.x, particle.y, particle.color, 12, 180);
+          spatParticles.splice(i, 1);
+          updateHud();
+        }
+      }
+
+      if (state === "readyForClick" && playersTouching()) {
+        triggerClickMoment();
+      }
+    }
+
+    function collectBall(player, ball) {
+      if (ball.color === player.targetColor) {
+        collectedByColor[ball.color] += 1;
+        player.collectedParticles.push(makeInnerParticle(ball.color));
+        burst(ball.x, ball.y, ball.color, 14, 170);
+      } else {
+        player.carried.push(makeInnerParticle(ball.color, true));
+        burst(ball.x, ball.y, ball.color, 8, 115);
+      }
+
+      updateHud();
+    }
+
+    function makeInnerParticle(color, warning = false) {
+      return {
+        color,
+        warning,
+        x: 0,
+        y: 0,
+        r: random(3.5, 6.5),
+        orbit: random(0.18, 0.72),
+        angle: Math.random() * Math.PI * 2,
+        speed: random(0.8, 1.7) * (Math.random() > 0.5 ? 1 : -1),
+        pulse: Math.random() * Math.PI * 2
+      };
+    }
+
+    function spit(player) {
+      if (state !== "playing" && state !== "readyForClick") return;
+      if (!player.carried.length || player.spitCooldown > 0) return;
+
+      const particle = player.carried.shift();
+      const partner = players[particle.color];
+      const dx = partner.x - player.x;
+      const dy = partner.y - player.y;
+      const length = Math.hypot(dx, dy) || 1;
+      const nx = dx / length;
+      const ny = dy / length;
+      const side = Math.random() > 0.5 ? 1 : -1;
+      const speed = 310;
+
+      spatParticles.push({
+        color: particle.color,
+        x: player.x + nx * (player.radius + 12),
+        y: player.y + ny * (player.radius + 12),
+        vx: nx * speed + -ny * side * 85,
+        vy: ny * speed + nx * side * 85,
+        r: 12,
+        baseR: 12,
+        age: 0,
+        seed: Math.random() * Math.PI * 2
+      });
+
+      player.spitCooldown = 0.22;
+      burst(player.x + nx * player.radius, player.y + ny * player.radius, particle.color, 8, 130);
+      updateHud();
+    }
+
+    function checkCompletion(now) {
+      if (collectedByColor.blue >= totalByColor.blue && collectedByColor.red >= totalByColor.red) {
+        if (state !== "readyForClick") {
+          state = "readyForClick";
+          showMessage(
+            "All perspectives collected. Come together for the Click Moment.",
+            "Guide the glowing glass players into each other to release the shared insight.",
+            false
+          );
+        }
+        return;
+      }
+
+      if (state === "playing" && now - startTime >= 60000) {
+        state = "ended";
+        showMessage("Time's up — try again!", "Restart and share any wrong-color particles before the countdown ends.", true);
+      }
+    }
+
+    function updateTimer(now) {
+      if (state === "readyForClick" || state === "final") {
+        timerEl.textContent = "0";
+        return;
+      }
+
+      const remaining = Math.max(0, Math.ceil((60000 - (now - startTime)) / 1000));
+      timerEl.textContent = remaining.toString();
+      timerEl.style.color = remaining <= 10 ? "#ffb0c5" : "#ffffff";
+    }
+
+    function triggerClickMoment() {
+      if (state === "final") return;
+      state = "final";
+      const x = (players.blue.x + players.red.x) / 2;
+      const y = (players.blue.y + players.red.y) / 2;
+
+      messagePanel.classList.remove("visible");
+      flash.classList.remove("active");
+      void flash.offsetWidth;
+      flash.classList.add("active");
+      hud.classList.remove("shake");
+      void hud.offsetWidth;
+      hud.classList.add("shake");
+
+      for (let i = 0; i < 210; i++) {
+        const color = i % 2 === 0 ? "blue" : "red";
+        const angle = Math.random() * Math.PI * 2;
+        const speed = random(130, 760);
+        const sparkle = Math.random() > 0.36;
+        sparks.push({
+          color,
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: sparkle ? random(1.2, 4.2) : random(4, 9),
+          age: 0,
+          life: sparkle ? random(0.75, 1.8) : random(1.1, 2.6),
+          gravity: sparkle ? random(18, 75) : random(8, 42),
+          drag: sparkle ? 0.05 : 0.14,
+          sparkle
+        });
+      }
+
+      for (const player of Object.values(players)) {
+        const allInside = [...player.collectedParticles, ...player.carried];
+        for (const particle of allInside) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = random(210, 620);
+          sparks.push({
+            color: particle.color,
+            x: player.x + particle.x,
+            y: player.y + particle.y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            r: random(4, 8),
+            age: 0,
+            life: random(1.3, 2.7),
+            gravity: random(10, 40),
+            drag: 0.1,
+            sparkle: false
+          });
+        }
+      }
+
+      setTimeout(() => {
+        showMessage(
+          "Click Moment: insights are created when perspectives meet.",
+          "The blue and red perspectives have met, mixed, and become something brighter together.",
+          true
+        );
+      }, 1200);
+    }
+
+    function playersTouching() {
+      return distance(players.blue.x, players.blue.y, players.red.x, players.red.y) <= players.blue.radius + players.red.radius - 8;
+    }
+
+    function showMessage(message, submessage, showRestart) {
+      completionMessageShown = true;
+      messageText.textContent = message;
+      submessageText.textContent = submessage;
+      restartButton.style.display = showRestart ? "inline-flex" : "none";
+      messagePanel.classList.add("visible");
+    }
+
+    function updateHud() {
+      blueScoreEl.textContent = collectedByColor.blue;
+      redScoreEl.textContent = collectedByColor.red;
+      blueTotalEl.textContent = totalByColor.blue;
+      redTotalEl.textContent = totalByColor.red;
+      blueWrongEl.textContent = players.blue.carried.length;
+      redWrongEl.textContent = players.red.carried.length;
+    }
+
+    function draw(now) {
+      ctx.clearRect(0, 0, width, height);
+      drawDreamyBackground(now);
+      drawBalls(now);
+      drawSpatParticles(now);
+      drawPlayers(now);
+      drawSparks();
+    }
+
+    function drawDreamyBackground(now) {
+      const t = now / 1000;
+      ctx.save();
+      for (const star of stars) {
+        const alpha = star.alpha + Math.sin(t * 1.7 + star.twinkle) * 0.12;
+        ctx.globalAlpha = Math.max(0.04, alpha);
+        ctx.fillStyle = "#e9fbff";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#95e7ff";
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      const blueGlow = ctx.createRadialGradient(players.blue.x, players.blue.y, 0, players.blue.x, players.blue.y, 260);
+      blueGlow.addColorStop(0, "rgba(57, 196, 255, 0.12)");
+      blueGlow.addColorStop(1, "rgba(57, 196, 255, 0)");
+      ctx.fillStyle = blueGlow;
+      ctx.fillRect(0, 0, width, height);
+
+      const redGlow = ctx.createRadialGradient(players.red.x, players.red.y, 0, players.red.x, players.red.y, 260);
+      redGlow.addColorStop(0, "rgba(255, 71, 136, 0.12)");
+      redGlow.addColorStop(1, "rgba(255, 71, 136, 0)");
+      ctx.fillStyle = redGlow;
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
+    }
+
+    function drawBalls(now) {
+      for (const ball of balls) {
+        const wobble = Math.sin(ball.pulse) * 1.8;
+        drawGradientOrb(ball.x, ball.y + Math.sin(ball.drift) * 2, ball.r + wobble * 0.25, ball.color, 1);
+      }
+    }
+
+    function drawSpatParticles(now) {
+      for (const p of spatParticles) {
+        ctx.save();
+        ctx.globalAlpha = 0.82 + Math.sin((now / 1000 + p.seed) * 8) * 0.1;
+        drawGradientOrb(p.x, p.y, p.r, p.color, 1.15);
+        ctx.restore();
+      }
+    }
+
+    function drawPlayers(now) {
+      drawPlayer(players.blue, now);
+      drawPlayer(players.red, now);
+    }
+
+    function drawPlayer(player, now) {
+      const palette = palettes[player.color];
+      const pulse = Math.sin(now / 360) * 0.08 + 1;
+
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      const aura = ctx.createRadialGradient(player.x, player.y, player.radius * 0.2, player.x, player.y, player.radius * 2.35);
+      aura.addColorStop(0, palette.soft);
+      aura.addColorStop(0.55, palette.soft.replace("0.22", "0.10"));
+      aura.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = aura;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius * 2.25 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.shadowBlur = 34;
+      ctx.shadowColor = palette.glow;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = palette.glow;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.035)";
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      const glass = ctx.createRadialGradient(
+        player.x - player.radius * 0.38,
+        player.y - player.radius * 0.46,
+        4,
+        player.x,
+        player.y,
+        player.radius
+      );
+      glass.addColorStop(0, "rgba(255, 255, 255, 0.42)");
+      glass.addColorStop(0.24, "rgba(255, 255, 255, 0.09)");
+      glass.addColorStop(0.64, "rgba(255, 255, 255, 0.025)");
+      glass.addColorStop(1, "rgba(255, 255, 255, 0.14)");
+      ctx.fillStyle = glass;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius - 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalCompositeOperation = "lighter";
+      for (const particle of player.collectedParticles) {
+        drawInnerParticle(player, particle, false);
+      }
+      for (const particle of player.carried) {
+        drawInnerParticle(player, particle, true);
+      }
+
+      ctx.globalCompositeOperation = "source-over";
+      ctx.lineWidth = 1.4;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.42)";
+      ctx.beginPath();
+      ctx.arc(player.x - player.radius * 0.24, player.y - player.radius * 0.28, player.radius * 0.34, Math.PI * 1.08, Math.PI * 1.72);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawInnerParticle(player, particle, warning) {
+      const palette = palettes[particle.color];
+      const x = player.x + particle.x;
+      const y = player.y + particle.y;
+      const warningPulse = warning ? 0.72 + Math.sin(particle.pulse * 1.8) * 0.28 : 0.42;
+
+      ctx.save();
+      ctx.shadowBlur = warning ? 22 + warningPulse * 12 : 16;
+      ctx.shadowColor = warning ? "#ffe37a" : palette.glow;
+      ctx.globalAlpha = warning ? 0.84 + warningPulse * 0.16 : 0.82;
+      drawGradientOrb(x, y, particle.r + (warning ? warningPulse * 1.3 : 0), particle.color, warning ? 1.05 : 0.76);
+      if (warning) {
+        ctx.strokeStyle = `rgba(255, 228, 122, ${0.45 + warningPulse * 0.28})`;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(x, y, particle.r + 5 + warningPulse * 2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawGradientOrb(x, y, r, color, glowScale) {
+      const palette = palettes[color];
+      ctx.save();
+      ctx.shadowBlur = 24 * glowScale;
+      ctx.shadowColor = palette.glow;
+      const gradient = ctx.createRadialGradient(x - r * 0.38, y - r * 0.44, r * 0.15, x, y, r);
+      gradient.addColorStop(0, "#ffffff");
+      gradient.addColorStop(0.18, palette.core);
+      gradient.addColorStop(0.74, palette.edge);
+      gradient.addColorStop(1, "rgba(20, 20, 38, 0.4)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawSparks() {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      for (const s of sparks) {
+        const alpha = 1 - s.age / s.life;
+        ctx.globalAlpha = Math.max(0, alpha);
+        if (s.sparkle) {
+          ctx.strokeStyle = palettes[s.color].core;
+          ctx.shadowBlur = 26;
+          ctx.shadowColor = palettes[s.color].glow;
+          ctx.lineWidth = Math.max(0.5, s.r * 0.45);
+          ctx.beginPath();
+          ctx.moveTo(s.x - s.vx * 0.018, s.y - s.vy * 0.018);
+          ctx.lineTo(s.x, s.y);
+          ctx.stroke();
+        } else {
+          drawGradientOrb(s.x, s.y, s.r, s.color, 1.1);
+        }
+      }
+      ctx.restore();
+    }
+
+    function burst(x, y, color, count, speed) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = random(speed * 0.35, speed);
+        sparks.push({
+          color,
+          x,
+          y,
+          vx: Math.cos(angle) * velocity,
+          vy: Math.sin(angle) * velocity,
+          r: random(1.1, 3.4),
+          age: 0,
+          life: random(0.35, 0.9),
+          gravity: random(0, 36),
+          drag: 0.08,
+          sparkle: true
+        });
+      }
+    }
+
+    function gameLoop(now) {
+      const dt = Math.min(0.033, (now - lastTime) / 1000 || 0);
+      lastTime = now;
+      update(dt, now);
+      draw(now);
+      requestAnimationFrame(gameLoop);
+    }
+
+    function distance(x1, y1, x2, y2) {
+      return Math.hypot(x2 - x1, y2 - y1);
+    }
+
+    function random(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    window.addEventListener("keydown", (event) => {
+      const key = event.key.toLowerCase();
+      const movementKeys = ["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", "q", "/"];
+      if (movementKeys.includes(key)) {
+        event.preventDefault();
+      }
+      keys.add(key);
+
+      if (key === players.blue.controls.spit) {
+        spit(players.blue);
+      }
+      if (key === players.red.controls.spit) {
+        spit(players.red);
+      }
+    });
+
+    window.addEventListener("keyup", (event) => {
+      keys.delete(event.key.toLowerCase());
+    });
+
+    window.addEventListener("resize", () => {
+      resize();
+    });
+
+    restartButton.addEventListener("click", () => {
+      initGame();
+    });
+
+    initStars();
+    resize();
+    initGame();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
