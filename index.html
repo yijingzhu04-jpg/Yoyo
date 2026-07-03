@@ -619,7 +619,7 @@
 
         window.setTimeout(() => {
           state.finalMessageShown = true;
-          showMessage("Insights are created when perspectives collide.", "Refresh or press Start again to replay the conversation.");
+          showMessage("Insights are created when perspectives collide.", "Press R to restart the conversation.");
         }, 1500);
       }
 
@@ -638,7 +638,7 @@
         updateTrails(dt);
         updateConstellation(dt);
 
-        if (state.phase === "unite" && distance(player1, player2) < player1.radius + player2.radius - 8) {
+        if (state.phase === "unite" && distance(player1, player2) <= player1.radius + player2.radius + 6) {
           triggerClickMoment();
         }
       }
