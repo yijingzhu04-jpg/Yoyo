@@ -1,0 +1,1028 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Click Moment</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --text: rgba(255, 255, 255, 0.92);
+      --muted: rgba(255, 255, 255, 0.64);
+      --glass: rgba(255, 255, 255, 0.12);
+      --line: rgba(255, 255, 255, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(106, 90, 255, 0.36), transparent 34%),
+        radial-gradient(circle at 82% 18%, rgba(0, 229, 255, 0.24), transparent 30%),
+        radial-gradient(circle at 50% 88%, rgba(255, 59, 183, 0.25), transparent 36%),
+        linear-gradient(135deg, #08091b 0%, #111530 42%, #160b25 100%);
+      color: var(--text);
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+      background-size: 62px 62px;
+      mask-image: radial-gradient(circle at center, black, transparent 78%);
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .hud {
+      position: fixed;
+      z-index: 3;
+      inset: 18px 20px auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      pointer-events: none;
+    }
+
+    .panel {
+      max-width: 360px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.055));
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel h1,
+    .panel h2,
+    .panel p {
+      margin: 0;
+    }
+
+    .panel h1 {
+      font-size: clamp(24px, 4vw, 42px);
+      letter-spacing: -0.05em;
+      text-shadow: 0 0 28px rgba(119, 235, 255, 0.7);
+    }
+
+    .panel h2 {
+      margin-bottom: 7px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(186, 245, 255, 0.86);
+    }
+
+    .panel p,
+    .stat {
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .stats {
+      min-width: 220px;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      white-space: nowrap;
+    }
+
+    .stat b {
+      color: var(--text);
+    }
+
+    .center-message,
+    .start-screen {
+      position: fixed;
+      z-index: 4;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      pointer-events: none;
+      text-align: center;
+    }
+
+    .center-card {
+      width: min(720px, 94vw);
+      padding: clamp(24px, 5vw, 54px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 30% 16%, rgba(117, 255, 245, 0.18), transparent 40%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.34), 0 0 90px rgba(113, 72, 255, 0.18);
+      backdrop-filter: blur(22px);
+    }
+
+    .start-screen {
+      pointer-events: auto;
+      transition: opacity 450ms ease, transform 450ms ease;
+    }
+
+    .start-screen.hidden {
+      opacity: 0;
+      transform: scale(1.03);
+      pointer-events: none;
+    }
+
+    .title {
+      margin: 0 0 10px;
+      font-size: clamp(48px, 10vw, 112px);
+      line-height: 0.9;
+      letter-spacing: -0.08em;
+      background: linear-gradient(90deg, #fff, #9bf7ff 35%, #ff8fe6 68%, #ffe879);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 34px rgba(121, 243, 255, 0.5));
+    }
+
+    .subtitle {
+      max-width: 590px;
+      margin: 0 auto 26px;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: clamp(16px, 2.2vw, 20px);
+      line-height: 1.55;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px 24px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #67f5ff, #a978ff 48%, #ff74cd);
+      color: #08091b;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      box-shadow: 0 0 34px rgba(117, 219, 255, 0.4), 0 12px 32px rgba(0, 0, 0, 0.28);
+      transition: transform 180ms ease, filter 180ms ease;
+    }
+
+    .button:hover,
+    .button:focus-visible {
+      transform: translateY(-2px) scale(1.02);
+      filter: saturate(1.18);
+      outline: none;
+    }
+
+    .instructions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 24px auto 0;
+      text-align: left;
+    }
+
+    .key-card {
+      padding: 14px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.74);
+      line-height: 1.5;
+    }
+
+    kbd {
+      display: inline-block;
+      min-width: 25px;
+      margin: 0 2px;
+      padding: 3px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    #message {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+      transition: opacity 420ms ease, transform 420ms ease;
+    }
+
+    #message.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    #message .center-card {
+      width: min(780px, 94vw);
+      padding: clamp(22px, 4vw, 42px);
+    }
+
+    #messageText {
+      margin: 0;
+      font-size: clamp(30px, 6vw, 72px);
+      line-height: 1.02;
+      letter-spacing: -0.06em;
+      text-shadow: 0 0 34px rgba(119, 235, 255, 0.58);
+    }
+
+    .hint {
+      margin-top: 14px;
+      color: rgba(255, 255, 255, 0.66);
+      font-size: 15px;
+    }
+
+    @media (max-width: 720px) {
+      .hud {
+        inset: 12px 12px auto;
+        flex-direction: column;
+      }
+
+      .panel {
+        max-width: none;
+        width: 100%;
+      }
+
+      .stats {
+        min-width: 0;
+      }
+
+      .instructions {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="Click Moment two-player game"></canvas>
+
+  <div class="hud" aria-live="polite">
+    <section class="panel">
+      <h1>Click Moment</h1>
+      <p>Collect color, share perspective, then bring both hollow glass spheres together.</p>
+    </section>
+    <section class="panel stats">
+      <h2>Controls</h2>
+      <div class="stat"><span>Player 1 move</span><b>WASD</b></div>
+      <div class="stat"><span>Player 1 share</span><b>Q</b></div>
+      <div class="stat"><span>Player 2 move</span><b>Arrows</b></div>
+      <div class="stat"><span>Player 2 share</span><b>/</b></div>
+      <div class="stat"><span>Restart game</span><b>R</b></div>
+      <div class="stat"><span>Moments left</span><b id="remaining">0</b></div>
+    </section>
+  </div>
+
+  <div class="start-screen" id="startScreen">
+    <div class="center-card">
+      <h1 class="title">Click Moment</h1>
+      <p class="subtitle">A collaborative UX research-inspired game about insight through conversation, sharing, and perspective exchange.</p>
+      <button class="button" id="startButton">Start the conversation</button>
+      <div class="instructions">
+        <div class="key-card"><strong>Player 1</strong><br><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move, <kbd>Q</kbd> to share one collected color particle.</div>
+        <div class="key-card"><strong>Player 2</strong><br><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> to move, <kbd>/</kbd> to share one collected color particle.</div>
+        <div class="key-card"><strong>Restart</strong><br>Press <kbd>R</kbd> anytime to restart the game.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="center-message" id="message" aria-live="assertive">
+    <div class="center-card">
+      <h2 id="messageText"></h2>
+      <div class="hint" id="messageHint"></div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const startScreen = document.getElementById("startScreen");
+      const startButton = document.getElementById("startButton");
+      const message = document.getElementById("message");
+      const messageText = document.getElementById("messageText");
+      const messageHint = document.getElementById("messageHint");
+      const remainingEl = document.getElementById("remaining");
+
+      const keys = new Set();
+      const colors = [
+        ["#67f5ff", "#6d6aff"],
+        ["#ff74cd", "#ffb86b"],
+        ["#8cff9d", "#48d9ff"],
+        ["#fff56d", "#ff7ab6"],
+        ["#b479ff", "#65f3ff"],
+        ["#ff6868", "#ffdb66"],
+        ["#75ffa7", "#b9ff6e"],
+        ["#ff8df3", "#8c7dff"]
+      ];
+
+      const state = {
+        running: false,
+        phase: "start",
+        time: 0,
+        last: performance.now(),
+        width: 0,
+        height: 0,
+        dpr: 1,
+        worldParticles: [],
+        sharedParticles: [],
+        sparks: [],
+        trails: [],
+        constellation: [],
+        messageShown: false,
+        finalMessageShown: false,
+        clickPoint: { x: 0, y: 0 }
+      };
+
+      function rand(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function pick(list) {
+        return list[Math.floor(Math.random() * list.length)];
+      }
+
+      function distance(a, b) {
+        return Math.hypot(a.x - b.x, a.y - b.y);
+      }
+
+      function resize() {
+        state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        state.width = window.innerWidth;
+        state.height = window.innerHeight;
+        canvas.width = Math.floor(state.width * state.dpr);
+        canvas.height = Math.floor(state.height * state.dpr);
+        canvas.style.width = `${state.width}px`;
+        canvas.style.height = `${state.height}px`;
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+        keepPlayersInBounds();
+      }
+
+      const player1 = makePlayer("p1", "#78f6ff", state.width * 0.28, state.height * 0.5, {
+        up: "w",
+        down: "s",
+        left: "a",
+        right: "d",
+        share: "q"
+      });
+      const player2 = makePlayer("p2", "#ff8cdd", state.width * 0.72, state.height * 0.5, {
+        up: "arrowup",
+        down: "arrowdown",
+        left: "arrowleft",
+        right: "arrowright",
+        share: "/"
+      });
+
+      function makePlayer(id, accent, x, y, controls) {
+        return {
+          id,
+          x,
+          y,
+          vx: 0,
+          vy: 0,
+          radius: 48,
+          accent,
+          controls,
+          particles: [],
+          bounce: 0,
+          glow: 0,
+          shareCooldown: 0
+        };
+      }
+
+      function keepPlayersInBounds() {
+        [player1, player2].forEach((player, index) => {
+          if (!player.x || !player.y) {
+            player.x = state.width * (index === 0 ? 0.28 : 0.72);
+            player.y = state.height * 0.5;
+          }
+          player.x = Math.max(player.radius, Math.min(state.width - player.radius, player.x));
+          player.y = Math.max(player.radius, Math.min(state.height - player.radius, player.y));
+        });
+      }
+
+      function resetGame() {
+        state.phase = "collect";
+        state.time = 0;
+        state.worldParticles = [];
+        state.sharedParticles = [];
+        state.sparks = [];
+        state.trails = [];
+        state.constellation = [];
+        state.messageShown = false;
+        state.finalMessageShown = false;
+
+        Object.assign(player1, {
+          x: state.width * 0.27,
+          y: state.height * 0.52,
+          vx: 0,
+          vy: 0,
+          particles: [],
+          bounce: 0,
+          glow: 0,
+          shareCooldown: 0
+        });
+        Object.assign(player2, {
+          x: state.width * 0.73,
+          y: state.height * 0.52,
+          vx: 0,
+          vy: 0,
+          particles: [],
+          bounce: 0,
+          glow: 0,
+          shareCooldown: 0
+        });
+
+        createWorldParticles();
+        hideMessage();
+        updateRemaining();
+      }
+
+      function createWorldParticles() {
+        const count = Math.max(32, Math.min(58, Math.floor((state.width * state.height) / 21000)));
+        for (let i = 0; i < count; i += 1) {
+          const radius = rand(9, 17);
+          const palette = pick(colors);
+          state.worldParticles.push({
+            x: rand(80, state.width - 80),
+            y: rand(100, state.height - 80),
+            baseX: 0,
+            baseY: 0,
+            radius,
+            palette,
+            phase: rand(0, Math.PI * 2),
+            speed: rand(0.55, 1.25),
+            drift: rand(4, 14),
+            collected: false
+          });
+        }
+        state.worldParticles.forEach((particle) => {
+          particle.baseX = particle.x;
+          particle.baseY = particle.y;
+        });
+      }
+
+      function updateRemaining() {
+        remainingEl.textContent = String(state.worldParticles.filter((particle) => !particle.collected).length);
+      }
+
+      function showMessage(text, hint = "") {
+        messageText.textContent = text;
+        messageHint.textContent = hint;
+        message.classList.add("visible");
+      }
+
+      function hideMessage() {
+        message.classList.remove("visible");
+      }
+
+      function collectParticle(player, particle) {
+        particle.collected = true;
+        player.bounce = 1;
+        player.glow = Math.max(player.glow, 0.72);
+        const angle = rand(0, Math.PI * 2);
+        const orbit = rand(5, player.radius * 0.52);
+        player.particles.push({
+          colorA: particle.palette[0],
+          colorB: particle.palette[1],
+          angle,
+          orbit,
+          spin: rand(-1.5, 1.5),
+          size: rand(4.5, 8),
+          bob: rand(0, Math.PI * 2)
+        });
+
+        for (let i = 0; i < 10; i += 1) {
+          state.sparks.push(makeSpark(particle.x, particle.y, particle.palette, rand(1, 2.4), rand(18, 36)));
+        }
+
+        updateRemaining();
+        if (state.phase === "collect" && state.worldParticles.every((item) => item.collected)) {
+          state.phase = "unite";
+          state.messageShown = true;
+          showMessage("Bring both perspectives together.", "Move the glass spheres into each other to create the Click Moment.");
+        }
+      }
+
+      function shareParticle(from, to) {
+        if (from.shareCooldown > 0 || from.particles.length === 0 || state.phase === "final") {
+          return;
+        }
+        const particle = from.particles.pop();
+        from.shareCooldown = 0.3;
+        from.bounce = 0.55;
+        state.sharedParticles.push({
+          x: from.x,
+          y: from.y,
+          vx: 0,
+          vy: 0,
+          radius: Math.max(8, particle.size + 3),
+          colorA: particle.colorA,
+          colorB: particle.colorB,
+          target: to,
+          life: 5
+        });
+      }
+
+      function receiveSharedParticle(player, particle) {
+        player.bounce = 0.8;
+        player.glow = Math.max(player.glow, 0.62);
+        player.particles.push({
+          colorA: particle.colorA,
+          colorB: particle.colorB,
+          angle: rand(0, Math.PI * 2),
+          orbit: rand(5, player.radius * 0.52),
+          spin: rand(-1.4, 1.4),
+          size: rand(4.5, 8),
+          bob: rand(0, Math.PI * 2)
+        });
+        for (let i = 0; i < 14; i += 1) {
+          state.sparks.push(makeSpark(particle.x, particle.y, [particle.colorA, particle.colorB], rand(1.2, 2.8), rand(20, 42)));
+        }
+      }
+
+      function makeSpark(x, y, palette, speedScale, life) {
+        const angle = rand(0, Math.PI * 2);
+        const speed = rand(0.8, 4.2) * speedScale;
+        return {
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: rand(1.2, 4.8),
+          life,
+          maxLife: life,
+          colorA: palette[0],
+          colorB: palette[1]
+        };
+      }
+
+      function triggerClickMoment() {
+        if (state.phase === "final") {
+          return;
+        }
+        state.phase = "final";
+        hideMessage();
+        player1.glow = 1.5;
+        player2.glow = 1.5;
+        state.clickPoint = {
+          x: (player1.x + player2.x) / 2,
+          y: (player1.y + player2.y) / 2
+        };
+
+        const all = [...player1.particles, ...player2.particles];
+        player1.particles = [];
+        player2.particles = [];
+
+        for (let i = 0; i < Math.max(130, all.length * 9); i += 1) {
+          const source = all[i % Math.max(1, all.length)] || {
+            colorA: pick(colors)[0],
+            colorB: pick(colors)[1]
+          };
+          state.sparks.push(makeSpark(state.clickPoint.x, state.clickPoint.y, [source.colorA, source.colorB], rand(2.4, 5.5), rand(90, 145)));
+        }
+
+        state.constellation = all.slice(0, 46).map((particle, index) => {
+          const ring = 65 + (index % 4) * 34;
+          const angle = (index / Math.max(1, all.length)) * Math.PI * 2 * 2.1 + rand(-0.2, 0.2);
+          return {
+            x: state.clickPoint.x,
+            y: state.clickPoint.y,
+            tx: state.clickPoint.x + Math.cos(angle) * ring + rand(-18, 18),
+            ty: state.clickPoint.y + Math.sin(angle) * ring * 0.72 + rand(-18, 18),
+            colorA: particle.colorA,
+            colorB: particle.colorB,
+            size: rand(3, 6),
+            progress: 0
+          };
+        });
+
+        window.setTimeout(() => {
+          state.finalMessageShown = true;
+          showMessage("Insights are created when perspectives collide.", "Press R to restart the conversation.");
+        }, 1500);
+      }
+
+      function update(dt) {
+        state.time += dt;
+        if (!state.running) {
+          updateAmbient(dt);
+          return;
+        }
+
+        handlePlayer(player1, dt);
+        handlePlayer(player2, dt);
+        updateWorldParticles(dt);
+        updateSharedParticles(dt);
+        updateSparks(dt);
+        updateTrails(dt);
+        updateConstellation(dt);
+
+        if (state.phase === "unite" && distance(player1, player2) <= player1.radius + player2.radius + 6) {
+          triggerClickMoment();
+        }
+      }
+
+      function updateAmbient(dt) {
+        state.time += dt * 0.25;
+        updateWorldParticles(dt);
+        updateSparks(dt);
+      }
+
+      function handlePlayer(player, dt) {
+        const controls = player.controls;
+        let ax = 0;
+        let ay = 0;
+
+        if (keys.has(controls.left)) ax -= 1;
+        if (keys.has(controls.right)) ax += 1;
+        if (keys.has(controls.up)) ay -= 1;
+        if (keys.has(controls.down)) ay += 1;
+
+        if (ax || ay) {
+          const length = Math.hypot(ax, ay);
+          ax /= length;
+          ay /= length;
+        }
+
+        const acceleration = 980;
+        const damping = Math.pow(0.0018, dt);
+        player.vx = (player.vx + ax * acceleration * dt) * damping;
+        player.vy = (player.vy + ay * acceleration * dt) * damping;
+        const maxSpeed = 410;
+        const speed = Math.hypot(player.vx, player.vy);
+        if (speed > maxSpeed) {
+          player.vx = (player.vx / speed) * maxSpeed;
+          player.vy = (player.vy / speed) * maxSpeed;
+        }
+
+        player.x += player.vx * dt;
+        player.y += player.vy * dt;
+
+        if (player.x < player.radius || player.x > state.width - player.radius) {
+          player.vx *= -0.42;
+        }
+        if (player.y < player.radius || player.y > state.height - player.radius) {
+          player.vy *= -0.42;
+        }
+        player.x = Math.max(player.radius, Math.min(state.width - player.radius, player.x));
+        player.y = Math.max(player.radius, Math.min(state.height - player.radius, player.y));
+
+        player.bounce = Math.max(0, player.bounce - dt * 2.5);
+        player.glow = Math.max(0, player.glow - dt * 0.7);
+        player.shareCooldown = Math.max(0, player.shareCooldown - dt);
+
+        if (Math.hypot(player.vx, player.vy) > 22) {
+          state.trails.push({
+            x: player.x,
+            y: player.y,
+            radius: player.radius,
+            color: player.accent,
+            life: 0.45,
+            maxLife: 0.45
+          });
+        }
+
+        for (const particle of state.worldParticles) {
+          if (!particle.collected && distance(player, particle) < player.radius + particle.radius - 4) {
+            collectParticle(player, particle);
+          }
+        }
+      }
+
+      function updateWorldParticles(dt) {
+        for (const particle of state.worldParticles) {
+          if (particle.collected) {
+            continue;
+          }
+          particle.phase += dt * particle.speed;
+          particle.x = particle.baseX + Math.cos(particle.phase * 1.6) * particle.drift;
+          particle.y = particle.baseY + Math.sin(particle.phase) * particle.drift;
+        }
+      }
+
+      function updateSharedParticles(dt) {
+        for (let i = state.sharedParticles.length - 1; i >= 0; i -= 1) {
+          const particle = state.sharedParticles[i];
+          const target = particle.target;
+          const dx = target.x - particle.x;
+          const dy = target.y - particle.y;
+          const dist = Math.max(1, Math.hypot(dx, dy));
+          const pull = 900;
+
+          particle.vx += (dx / dist) * pull * dt;
+          particle.vy += (dy / dist) * pull * dt;
+          particle.vx *= Math.pow(0.02, dt);
+          particle.vy *= Math.pow(0.02, dt);
+          particle.x += particle.vx * dt;
+          particle.y += particle.vy * dt;
+          particle.life -= dt;
+
+          state.trails.push({
+            x: particle.x,
+            y: particle.y,
+            radius: particle.radius * 1.8,
+            color: particle.colorA,
+            life: 0.35,
+            maxLife: 0.35
+          });
+
+          if (distance(target, particle) < target.radius + particle.radius) {
+            receiveSharedParticle(target, particle);
+            state.sharedParticles.splice(i, 1);
+          } else if (particle.life <= 0) {
+            state.sharedParticles.splice(i, 1);
+          }
+        }
+      }
+
+      function updateSparks(dt) {
+        for (let i = state.sparks.length - 1; i >= 0; i -= 1) {
+          const spark = state.sparks[i];
+          spark.x += spark.vx;
+          spark.y += spark.vy;
+          spark.vx *= 0.982;
+          spark.vy *= 0.982;
+          spark.vy += 0.01;
+          spark.life -= dt * 60;
+          if (spark.life <= 0) {
+            state.sparks.splice(i, 1);
+          }
+        }
+      }
+
+      function updateTrails(dt) {
+        for (let i = state.trails.length - 1; i >= 0; i -= 1) {
+          state.trails[i].life -= dt;
+          if (state.trails[i].life <= 0) {
+            state.trails.splice(i, 1);
+          }
+        }
+      }
+
+      function updateConstellation(dt) {
+        if (state.phase !== "final") {
+          return;
+        }
+        for (const node of state.constellation) {
+          node.progress = Math.min(1, node.progress + dt * 0.33);
+          const ease = 1 - Math.pow(1 - node.progress, 3);
+          node.x += (node.tx - node.x) * ease * 0.035;
+          node.y += (node.ty - node.y) * ease * 0.035;
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, state.width, state.height);
+        drawAtmosphere();
+        drawTrails();
+        drawWorldParticles();
+        drawSharedParticles();
+        drawConstellation();
+        drawPlayer(player1);
+        drawPlayer(player2);
+        drawSparks();
+      }
+
+      function drawAtmosphere() {
+        const gradient = ctx.createRadialGradient(
+          state.width * 0.5,
+          state.height * 0.5,
+          0,
+          state.width * 0.5,
+          state.height * 0.5,
+          Math.max(state.width, state.height) * 0.72
+        );
+        gradient.addColorStop(0, "rgba(98, 244, 255, 0.055)");
+        gradient.addColorStop(0.5, "rgba(159, 94, 255, 0.035)");
+        gradient.addColorStop(1, "rgba(0, 0, 0, 0.22)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, state.width, state.height);
+
+        ctx.save();
+        ctx.globalAlpha = 0.16;
+        for (let i = 0; i < 26; i += 1) {
+          const x = ((i * 211 + Math.sin(state.time * 0.15 + i) * 80) % (state.width + 120)) - 60;
+          const y = ((i * 137 + Math.cos(state.time * 0.12 + i) * 60) % (state.height + 120)) - 60;
+          ctx.fillStyle = i % 2 ? "#85f7ff" : "#ff8bea";
+          ctx.beginPath();
+          ctx.arc(x, y, 1.2 + (i % 5) * 0.45, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawGradientBall(x, y, radius, colorA, colorB, alpha = 1) {
+        const gradient = ctx.createRadialGradient(x - radius * 0.35, y - radius * 0.35, 2, x, y, radius);
+        gradient.addColorStop(0, "rgba(255, 255, 255, 0.96)");
+        gradient.addColorStop(0.18, colorA);
+        gradient.addColorStop(1, colorB);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = colorA;
+        ctx.shadowBlur = radius * 1.8;
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawWorldParticles() {
+        for (const particle of state.worldParticles) {
+          if (particle.collected) {
+            continue;
+          }
+          const pulse = 1 + Math.sin(state.time * 3 + particle.phase) * 0.08;
+          drawGradientBall(particle.x, particle.y, particle.radius * pulse, particle.palette[0], particle.palette[1], 0.92);
+        }
+      }
+
+      function drawPlayer(player) {
+        const bounce = Math.sin(player.bounce * Math.PI) * 6;
+        const radius = player.radius + bounce;
+
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        ctx.shadowColor = player.accent;
+        ctx.shadowBlur = 26 + player.glow * 54;
+
+        const shell = ctx.createRadialGradient(-radius * 0.38, -radius * 0.44, 4, 0, 0, radius);
+        shell.addColorStop(0, "rgba(255, 255, 255, 0.42)");
+        shell.addColorStop(0.38, "rgba(255, 255, 255, 0.12)");
+        shell.addColorStop(0.72, "rgba(255, 255, 255, 0.055)");
+        shell.addColorStop(1, "rgba(255, 255, 255, 0.18)");
+        ctx.fillStyle = shell;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.58)";
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = player.accent;
+        ctx.globalAlpha = 0.68 + player.glow * 0.25;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius + 4 + player.glow * 8, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 18;
+        for (const particle of player.particles) {
+          particle.angle += particle.spin * 0.01;
+          particle.bob += 0.025;
+          const px = Math.cos(particle.angle + state.time * 0.8) * particle.orbit;
+          const py = Math.sin(particle.angle * 1.3 + state.time * 0.7) * particle.orbit * 0.7 + Math.sin(particle.bob) * 3;
+          drawGradientBall(px, py, particle.size, particle.colorA, particle.colorB, 0.95);
+        }
+
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.ellipse(-radius * 0.26, -radius * 0.34, radius * 0.18, radius * 0.09, -0.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawSharedParticles() {
+        for (const particle of state.sharedParticles) {
+          drawGradientBall(particle.x, particle.y, particle.radius, particle.colorA, particle.colorB, 1);
+        }
+      }
+
+      function drawTrails() {
+        ctx.save();
+        for (const trail of state.trails) {
+          const alpha = Math.max(0, trail.life / trail.maxLife);
+          ctx.globalAlpha = alpha * 0.22;
+          ctx.strokeStyle = trail.color;
+          ctx.lineWidth = 2;
+          ctx.shadowColor = trail.color;
+          ctx.shadowBlur = 18;
+          ctx.beginPath();
+          ctx.arc(trail.x, trail.y, trail.radius * (1 + (1 - alpha) * 0.55), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawSparks() {
+        ctx.save();
+        for (const spark of state.sparks) {
+          const alpha = Math.max(0, spark.life / spark.maxLife);
+          drawGradientBall(spark.x, spark.y, spark.size * (0.7 + alpha), spark.colorA, spark.colorB, alpha);
+        }
+        ctx.restore();
+      }
+
+      function drawConstellation() {
+        if (!state.constellation.length) {
+          return;
+        }
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (let i = 0; i < state.constellation.length; i += 1) {
+          const a = state.constellation[i];
+          for (let j = i + 1; j < state.constellation.length; j += 1) {
+            const b = state.constellation[j];
+            const d = Math.hypot(a.x - b.x, a.y - b.y);
+            if (d < 98) {
+              ctx.globalAlpha = (1 - d / 98) * 0.32;
+              ctx.strokeStyle = a.colorA;
+              ctx.lineWidth = 1.2;
+              ctx.shadowColor = a.colorA;
+              ctx.shadowBlur = 12;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        ctx.globalAlpha = 1;
+        for (const node of state.constellation) {
+          drawGradientBall(node.x, node.y, node.size, node.colorA, node.colorB, 0.94);
+        }
+        ctx.restore();
+      }
+
+      function loop(now) {
+        const dt = Math.min(0.033, (now - state.last) / 1000 || 0);
+        state.last = now;
+        update(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener("keydown", (event) => {
+        const key = event.key.toLowerCase();
+        keys.add(key);
+
+        if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) {
+          event.preventDefault();
+        }
+
+        if (key === "r") {
+          startGame();
+        }
+
+        if (!state.running && (key === "enter" || key === " ")) {
+          startGame();
+        }
+
+        if (state.running) {
+          if (key === player1.controls.share) {
+            shareParticle(player1, player2);
+          }
+          if (key === player2.controls.share) {
+            shareParticle(player2, player1);
+          }
+        }
+      });
+
+      window.addEventListener("keyup", (event) => {
+        keys.delete(event.key.toLowerCase());
+      });
+
+      startButton.addEventListener("click", startGame);
+
+      function startGame() {
+        resetGame();
+        state.running = true;
+        startScreen.classList.add("hidden");
+      }
+
+      window.addEventListener("resize", resize);
+      resize();
+      createWorldParticles();
+      updateRemaining();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
