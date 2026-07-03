@@ -288,6 +288,7 @@
       <div class="stat"><span>Player 1 share</span><b>Q</b></div>
       <div class="stat"><span>Player 2 move</span><b>Arrows</b></div>
       <div class="stat"><span>Player 2 share</span><b>/</b></div>
+      <div class="stat"><span>Restart game</span><b>R</b></div>
       <div class="stat"><span>Moments left</span><b id="remaining">0</b></div>
     </section>
   </div>
@@ -300,6 +301,7 @@
       <div class="instructions">
         <div class="key-card"><strong>Player 1</strong><br><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move, <kbd>Q</kbd> to share one collected color particle.</div>
         <div class="key-card"><strong>Player 2</strong><br><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> to move, <kbd>/</kbd> to share one collected color particle.</div>
+        <div class="key-card"><strong>Restart</strong><br>Press <kbd>R</kbd> anytime to restart the game.</div>
       </div>
     </div>
   </div>
@@ -983,6 +985,10 @@
 
         if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) {
           event.preventDefault();
+        }
+
+        if (key === "r") {
+          startGame();
         }
 
         if (!state.running && (key === "enter" || key === " ")) {
