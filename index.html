@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Click Moment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="overlay">
+    <p class="hint">Player 1: WASD &nbsp;&middot;&nbsp; Player 2: Arrow Keys</p>
+    <p class="hint subtle">Guide the ribbon through each circle's center — together.</p>
+  </div>
+
+  <div id="timer" aria-live="polite">1:30</div>
+
+  <button id="restart" type="button" aria-label="Restart game">Restart</button>
+
+  <div id="finale" hidden>
+    <h1>CLICK MOMENT</h1>
+    <p class="subtitle">Created through conversation.</p>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
