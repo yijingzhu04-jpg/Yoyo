@@ -1,0 +1,164 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #06060f;
+  font-family: "Georgia", "Times New Roman", serif;
+  color: rgba(255, 255, 255, 0.85);
+  -webkit-font-smoothing: antialiased;
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 1.8s ease;
+}
+
+#overlay.fade-out {
+  opacity: 0;
+}
+
+.hint {
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-weight: 300;
+}
+
+.hint.subtle {
+  margin-top: 0.6rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.22);
+}
+
+#timer {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.85rem;
+  letter-spacing: 0.35em;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-weight: 200;
+  color: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  transition: color 0.6s ease, opacity 0.6s ease;
+}
+
+#timer.urgent {
+  color: rgba(255, 180, 160, 0.65);
+}
+
+#timer.hidden {
+  opacity: 0;
+}
+
+#restart {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  padding: 0.55rem 1.2rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 2rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+}
+
+#restart:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+#finale {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  text-align: center;
+}
+
+#finale h1 {
+  font-size: clamp(1.6rem, 4vw, 2.8rem);
+  font-weight: 300;
+  letter-spacing: 0.45em;
+  text-indent: 0.45em;
+  color: rgba(255, 255, 255, 0);
+  text-shadow: 0 0 40px rgba(180, 210, 255, 0);
+  transition: color 2s ease, text-shadow 2.5s ease;
+}
+
+#finale h1.visible {
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 0 60px rgba(180, 210, 255, 0.5);
+}
+
+#finale .subtitle {
+  margin-top: 1.4rem;
+  font-size: clamp(0.85rem, 2vw, 1.05rem);
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0);
+  transition: color 2.2s ease 1.2s;
+}
+
+#finale .subtitle.visible {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+@media (max-width: 600px) {
+  #overlay {
+    padding: 1.5rem 1rem;
+  }
+
+  .hint {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+  }
+
+  #restart {
+    bottom: 1.2rem;
+    right: 1.2rem;
+  }
+
+  #timer {
+    bottom: 1.2rem;
+  }
+}
