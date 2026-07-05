@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Click Moment — Created Through Conversation</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(120, 180, 255, 0.28), transparent 38%),
+        radial-gradient(circle at 85% 18%, rgba(255, 140, 200, 0.22), transparent 35%),
+        radial-gradient(circle at 50% 88%, rgba(130, 255, 220, 0.16), transparent 40%),
+        linear-gradient(145deg, #0a0e1f 0%, #141832 45%, #1a1028 100%);
+      color: #f5f9ff;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .timer {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      min-width: 110px;
+      transform: translateX(-50%);
+      padding: 10px 24px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      background: rgba(10, 14, 32, 0.55);
+      box-shadow: 0 0 30px rgba(100, 200, 255, 0.2), inset 0 0 16px rgba(255, 255, 255, 0.05);
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      line-height: 1;
+      text-align: center;
+      text-shadow: 0 0 18px rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(14px);
+    }
+
+    .panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: min(340px, calc(100vw - 40px));
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      background: rgba(8, 12, 28, 0.45);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(12px);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .sequence {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .seq-word {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      font-weight: 700;
+      opacity: 0.45;
+      transition: opacity 0.3s, box-shadow 0.3s;
+    }
+
+    .seq-word.done {
+      opacity: 1;
+      box-shadow: 0 0 14px rgba(120, 220, 255, 0.5);
+      background: rgba(100, 200, 255, 0.2);
+    }
+
+    .seq-word.current {
+      opacity: 1;
+      animation: pulse 1.2s ease-in-out infinite;
+      box-shadow: 0 0 18px rgba(255, 200, 120, 0.6);
+      background: rgba(255, 200, 100, 0.2);
+    }
+
+    .moments {
+      margin-top: 10px;
+      font-weight: 700;
+    }
+
+    .moment-dots {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.08);
+      transition: all 0.4s;
+    }
+
+    .dot.filled {
+      background: linear-gradient(135deg, #7ee8ff, #ff9ec8);
+      box-shadow: 0 0 16px rgba(130, 220, 255, 0.7);
+      border-color: transparent;
+    }
+
+    .controls {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      max-width: min(360px, calc(100vw - 40px));
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      background: rgba(8, 12, 28, 0.42);
+      backdrop-filter: blur(12px);
+      font-size: 13px;
+      line-height: 1.45;
+      color: rgba(240, 248, 255, 0.85);
+    }
+
+    .controls strong {
+      color: #8ee4ff;
+    }
+
+    .controls .p2 strong {
+      color: #ffaac8;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(5, 8, 20, 0.55);
+      backdrop-filter: blur(6px);
+      pointer-events: auto;
+    }
+
+    .overlay.visible {
+      display: flex;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .overlay-card {
+      max-width: 720px;
+      padding: clamp(28px, 5vw, 52px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 25% 20%, rgba(90, 210, 255, 0.2), transparent 40%),
+        radial-gradient(circle at 75% 80%, rgba(255, 120, 180, 0.18), transparent 38%),
+        rgba(8, 12, 30, 0.78);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      backdrop-filter: blur(18px);
+    }
+
+    .overlay-card h1 {
+      margin: 0;
+      font-size: clamp(22px, 4.5vw, 42px);
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      text-shadow: 0 0 24px rgba(120, 220, 255, 0.5), 0 0 40px rgba(255, 130, 180, 0.3);
+    }
+
+    .overlay-card p {
+      margin: 14px 0 0;
+      color: rgba(235, 245, 255, 0.78);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .overlay-card button {
+      margin-top: 22px;
+      padding: 12px 24px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #7ee8ff, #ff9ec8);
+      box-shadow: 0 10px 30px rgba(255, 130, 180, 0.25);
+      color: #0a1020;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      pointer-events: auto;
+      transition: transform 0.15s, filter 0.15s;
+    }
+
+    .overlay-card button:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    .flash {
+      position: fixed;
+      inset: 0;
+      z-index: 4;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .flash.active {
+      animation: flashBurst 0.7s ease-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes flashBurst {
+      0% { opacity: 0; }
+      15% { opacity: 0.85; }
+      100% { opacity: 0; }
+    }
+
+    @media (max-width: 700px) {
+      .controls { display: none; }
+      .panel { top: auto; bottom: 18px; left: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="Two-player Click Moment conversation game"></canvas>
+  <div class="flash" id="flash"></div>
+
+  <div class="hud">
+    <div class="timer" id="timer">90</div>
+    <div class="panel">
+      <h2>Conversation Thread</h2>
+      <div>Guide the glowing string through words in order:</div>
+      <div class="sequence" id="sequence"></div>
+      <div class="moments">
+        Click Moments: <span id="momentCount">0</span> / 3
+        <div class="moment-dots" id="momentDots">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <div><strong>Player 1</strong> — WASD</div>
+      <div class="p2"><strong>Player 2</strong> — Arrow keys</div>
+      <div style="margin-top:8px;opacity:0.8">Touch word bubbles with the string. After 3 Click Moments, meet at the center together.</div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="overlay-card">
+      <h1 id="overlayTitle"></h1>
+      <p id="overlayText"></p>
+      <button id="restartBtn" type="button">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const flash = document.getElementById("flash");
+    const timerEl = document.getElementById("timer");
+    const sequenceEl = document.getElementById("sequence");
+    const momentCountEl = document.getElementById("momentCount");
+    const momentDotsEl = document.getElementById("momentDots");
+    const overlay = document.getElementById("overlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlayText = document.getElementById("overlayText");
+    const restartBtn = document.getElementById("restartBtn");
+
+    const WORDS = ["Question", "Response", "Pause", "Spark", "Idea"];
+    const WORD_COLORS = {
+      Question: { bg: "rgba(100, 180, 255, 0.35)", glow: "#6ec8ff", text: "#d8eeff" },
+      Response: { bg: "rgba(130, 255, 200, 0.3)", glow: "#7dffd4", text: "#e0fff5" },
+      Pause: { bg: "rgba(200, 160, 255, 0.3)", glow: "#c8a0ff", text: "#f0e8ff" },
+      Spark: { bg: "rgba(255, 200, 100, 0.35)", glow: "#ffc86e", text: "#fff4dc" },
+      Idea: { bg: "rgba(255, 130, 180, 0.32)", glow: "#ff8ab8", text: "#ffe8f2" }
+    };
+
+    const SEQUENCES = [
+      ["Question", "Response", "Spark"],
+      ["Idea", "Question", "Response"],
+      ["Question", "Pause", "Idea"]
+    ];
+
+    const GAME_DURATION = 90000;
+    const CLICK_MOMENTS_NEEDED = 3;
+    const CENTER_RADIUS = 55;
+    const MEET_THRESHOLD = 70;
+
+    const keys = new Set();
+    let width = 0;
+    let height = 0;
+    let centerX = 0;
+    let centerY = 0;
+    let lastTime = performance.now();
+    let startTime = performance.now();
+    let state = "playing";
+    let currentSequenceIndex = 0;
+    let sequenceProgress = 0;
+    let clickMoments = 0;
+    let meetTimer = 0;
+
+    const particles = [];
+    const ripples = [];
+    const fireworks = [];
+    const stars = [];
+
+    const players = [
+      {
+        id: 1,
+        color: { core: "#6ee8ff", edge: "#2a88ff", glow: "rgba(90, 220, 255, 0.8)", soft: "rgba(90, 220, 255, 0.18)" },
+        x: 0, y: 0, vx: 0, vy: 0,
+        radius: 28,
+        controls: { up: "w", down: "s", left: "a", right: "d" }
+      },
+      {
+        id: 2,
+        color: { core: "#ff9ec8", edge: "#ff4a8a", glow: "rgba(255, 120, 170, 0.8)", soft: "rgba(255, 120, 170, 0.18)" },
+        x: 0, y: 0, vx: 0, vy: 0,
+        radius: 28,
+        controls: { up: "arrowup", down: "arrowdown", left: "arrowleft", right: "arrowright" }
+      }
+    ];
+
+    let bubbles = [];
+    let clickMomentAnim = null;
+
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      centerX = width / 2;
+      centerY = height / 2;
+
+      if (!players[0].x) {
+        players[0].x = width * 0.28;
+        players[0].y = height * 0.55;
+        players[1].x = width * 0.72;
+        players[1].y = height * 0.55;
+      }
+    }
+
+    function initStars() {
+      stars.length = 0;
+      for (let i = 0; i < 90; i++) {
+        stars.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          r: Math.random() * 1.5 + 0.3,
+          alpha: Math.random() * 0.4 + 0.1,
+          twinkle: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function createBubbles() {
+      bubbles = [];
+      const positions = [
+        { x: 0.18, y: 0.28 },
+        { x: 0.42, y: 0.18 },
+        { x: 0.62, y: 0.22 },
+        { x: 0.78, y: 0.35 },
+        { x: 0.5, y: 0.72 }
+      ];
+
+      WORDS.forEach((word, i) => {
+        const pos = positions[i];
+        bubbles.push({
+          word,
+          x: pos.x * width,
+          y: pos.y * height,
+          baseX: pos.x * width,
+          baseY: pos.y * height,
+          radius: 42,
+          phase: Math.random() * Math.PI * 2,
+          floatSpeed: 0.6 + Math.random() * 0.4,
+          collected: false,
+          pulse: Math.random() * Math.PI * 2
+        });
+      });
+    }
+
+    function getCurrentSequence() {
+      return SEQUENCES[currentSequenceIndex % SEQUENCES.length];
+    }
+
+    function updateSequenceUI() {
+      const seq = getCurrentSequence();
+      sequenceEl.innerHTML = "";
+      seq.forEach((word, i) => {
+        const span = document.createElement("span");
+        span.className = "seq-word";
+        span.textContent = word;
+        if (i < sequenceProgress) span.classList.add("done");
+        else if (i === sequenceProgress) span.classList.add("current");
+        sequenceEl.appendChild(span);
+        if (i < seq.length - 1) {
+          const arrow = document.createElement("span");
+          arrow.textContent = "→";
+          arrow.style.opacity = "0.4";
+          arrow.style.fontSize = "11px";
+          sequenceEl.appendChild(arrow);
+        }
+      });
+      momentCountEl.textContent = clickMoments;
+      momentDotsEl.querySelectorAll(".dot").forEach((dot, i) => {
+        dot.classList.toggle("filled", i < clickMoments);
+      });
+    }
+
+    function initGame() {
+      state = "playing";
+      currentSequenceIndex = 0;
+      sequenceProgress = 0;
+      clickMoments = 0;
+      meetTimer = 0;
+      startTime = performance.now();
+      lastTime = startTime;
+      particles.length = 0;
+      ripples.length = 0;
+      fireworks.length = 0;
+      clickMomentAnim = null;
+      overlay.classList.remove("visible");
+      flash.classList.remove("active");
+
+      players[0].x = width * 0.28;
+      players[0].y = height * 0.55;
+      players[0].vx = 0;
+      players[0].vy = 0;
+      players[1].x = width * 0.72;
+      players[1].y = height * 0.55;
+      players[1].vx = 0;
+      players[1].vy = 0;
+
+      createBubbles();
+      updateSequenceUI();
+    }
+
+    function updatePlayers(dt) {
+      const restLength = Math.min(width, height) * 0.38;
+      const springK = 18;
+      const damping = 0.88;
+
+      for (const p of players) {
+        const c = p.controls;
+        let ax = 0, ay = 0;
+        if (keys.has(c.left)) ax -= 1;
+        if (keys.has(c.right)) ax += 1;
+        if (keys.has(c.up)) ay -= 1;
+        if (keys.has(c.down)) ay += 1;
+
+        if (ax || ay) {
+          const len = Math.hypot(ax, ay) || 1;
+          ax /= len;
+          ay /= len;
+        }
+
+        const accel = 900;
+        p.vx += ax * accel * dt;
+        p.vy += ay * accel * dt;
+      }
+
+      const dx = players[1].x - players[0].x;
+      const dy = players[1].y - players[0].y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const stretch = dist - restLength;
+      const force = springK * stretch;
+      const nx = dx / dist;
+      const ny = dy / dist;
+
+      players[0].vx += nx * force * dt;
+      players[0].vy += ny * force * dt;
+      players[1].vx -= nx * force * dt;
+      players[1].vy -= ny * force * dt;
+
+      for (const p of players) {
+        p.vx *= Math.pow(damping, dt * 60);
+        p.vy *= Math.pow(damping, dt * 60);
+        const speed = Math.hypot(p.vx, p.vy);
+        const maxSpeed = 320;
+        if (speed > maxSpeed) {
+          p.vx = (p.vx / speed) * maxSpeed;
+          p.vy = (p.vy / speed) * maxSpeed;
+        }
+        p.x = clamp(p.x + p.vx * dt, p.radius + 10, width - p.radius - 10);
+        p.y = clamp(p.y + p.vy * dt, p.radius + 80, height - p.radius - 10);
+      }
+    }
+
+    function pointToSegmentDist(px, py, x1, y1, x2, y2) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+      let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+      t = clamp(t, 0, 1);
+      const projX = x1 + t * dx;
+      const projY = y1 + t * dy;
+      return Math.hypot(px - projX, py - projY);
+    }
+
+    function checkBubbleCollection() {
+      if (state !== "playing") return;
+
+      const seq = getCurrentSequence();
+      const targetWord = seq[sequenceProgress];
+      if (!targetWord) return;
+
+      const x1 = players[0].x, y1 = players[0].y;
+      const x2 = players[1].x, y2 = players[1].y;
+
+      for (const bubble of bubbles) {
+        if (bubble.collected || bubble.word !== targetWord) continue;
+        const dist = pointToSegmentDist(bubble.x, bubble.y, x1, y1, x2, y2);
+        if (dist <= bubble.radius + 8) {
+          bubble.collected = true;
+          sequenceProgress++;
+          spawnCollectBurst(bubble.x, bubble.y, bubble.word);
+          updateSequenceUI();
+
+          if (sequenceProgress >= seq.length) {
+            triggerClickMoment();
+          }
+          break;
+        }
+      }
+    }
+
+    function triggerClickMoment() {
+      clickMoments++;
+      sequenceProgress = 0;
+      currentSequenceIndex++;
+      updateSequenceUI();
+
+      clickMomentAnim = {
+        age: 0,
+        duration: 2.2,
+        x: centerX,
+        y: centerY
+      };
+
+      flash.classList.remove("active");
+      void flash.offsetWidth;
+      flash.classList.add("active");
+
+      for (let i = 0; i < 80; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 80 + Math.random() * 280;
+        particles.push({
+          x: centerX, y: centerY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: 1.5 + Math.random() * 4,
+          life: 0.8 + Math.random() * 1.2,
+          age: 0,
+          color: Math.random() > 0.5 ? "#7ee8ff" : "#ff9ec8",
+          glow: true
+        });
+      }
+
+      for (let i = 0; i < 4; i++) {
+        ripples.push({ x: centerX, y: centerY, r: 0, maxR: 120 + i * 60, age: i * 0.15, life: 1.4, alpha: 0.7 - i * 0.12 });
+      }
+
+      if (clickMoments >= CLICK_MOMENTS_NEEDED) {
+        state = "converge";
+        setTimeout(() => {
+          if (state === "converge") {
+            showOverlay(
+              "One more step…",
+              "Move both yo-yo balls to the glowing center at the same time."
+            );
+            setTimeout(() => overlay.classList.remove("visible"), 2500);
+          }
+        }, 1800);
+      } else {
+        setTimeout(() => resetBubblesForNextRound(), 1200);
+      }
+    }
+
+    function resetBubblesForNextRound() {
+      bubbles.forEach(b => { b.collected = false; });
+    }
+
+    function spawnCollectBurst(x, y, word) {
+      const col = WORD_COLORS[word];
+      for (let i = 0; i < 16; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 60 + Math.random() * 140;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: 1 + Math.random() * 3,
+          life: 0.5 + Math.random() * 0.5,
+          age: 0,
+          color: col.glow,
+          glow: true
+        });
+      }
+    }
+
+    function checkConvergence(dt) {
+      if (state !== "converge") return;
+
+      const d1 = Math.hypot(players[0].x - centerX, players[0].y - centerY);
+      const d2 = Math.hypot(players[1].x - centerX, players[1].y - centerY);
+
+      if (d1 <= MEET_THRESHOLD && d2 <= MEET_THRESHOLD) {
+        meetTimer += dt;
+        if (meetTimer >= 0.6) {
+          triggerWin();
+        }
+      } else {
+        meetTimer = Math.max(0, meetTimer - dt * 0.5);
+      }
+    }
+
+    function triggerWin() {
+      state = "won";
+      fireworks.length = 0;
+
+      for (let i = 0; i < 120; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 100 + Math.random() * 400;
+        const colors = ["#7ee8ff", "#ff9ec8", "#ffe07a", "#b8ff9e", "#d4a0ff"];
+        fireworks.push({
+          x: centerX + (Math.random() - 0.5) * 80,
+          y: centerY + (Math.random() - 0.5) * 40,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 80,
+          r: 2 + Math.random() * 5,
+          life: 1.5 + Math.random() * 2,
+          age: 0,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          gravity: 120 + Math.random() * 80,
+          drag: 0.12
+        });
+      }
+
+      for (let wave = 0; wave < 5; wave++) {
+        setTimeout(() => {
+          for (let i = 0; i < 40; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 150 + Math.random() * 350;
+            fireworks.push({
+              x: centerX + Math.cos(angle) * 30,
+              y: centerY + Math.sin(angle) * 20,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              r: 2 + Math.random() * 4,
+              life: 1 + Math.random() * 1.5,
+              age: 0,
+              color: ["#7ee8ff", "#ff9ec8", "#fff"][Math.floor(Math.random() * 3)],
+              gravity: 60,
+              drag: 0.1
+            });
+          }
+        }, wave * 300);
+      }
+
+      flash.classList.remove("active");
+      void flash.offsetWidth;
+      flash.classList.add("active");
+
+      setTimeout(() => {
+        showOverlay(
+          "Click Moment Created Through Conversation.",
+          "You wove three conversations into insight — and arrived together."
+        );
+      }, 800);
+    }
+
+    function showOverlay(title, text) {
+      overlayTitle.textContent = title;
+      overlayText.textContent = text;
+      overlay.classList.add("visible");
+    }
+
+    function updateTimer(now) {
+      if (state === "won" || state === "lost") {
+        timerEl.textContent = "0";
+        return;
+      }
+      const remaining = Math.max(0, Math.ceil((GAME_DURATION - (now - startTime)) / 1000));
+      timerEl.textContent = remaining;
+      timerEl.style.color = remaining <= 15 ? "#ffb0c8" : "#ffffff";
+
+      if (state === "playing" || state === "converge") {
+        if (now - startTime >= GAME_DURATION) {
+          state = "lost";
+          showOverlay("Time's up", "Restart and weave your conversation threads before the countdown ends.");
+        }
+      }
+    }
+
+    function updateBubbles(dt, now) {
+      const t = now / 1000;
+      for (const b of bubbles) {
+        b.phase += dt * b.floatSpeed;
+        b.pulse += dt * 2.5;
+        b.x = b.baseX + Math.sin(b.phase) * 12;
+        b.y = b.baseY + Math.cos(b.phase * 0.8) * 10;
+      }
+    }
+
+    function updateParticles(dt) {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.age += dt;
+        p.vx *= Math.pow(0.05, dt);
+        p.vy *= Math.pow(0.05, dt);
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.age >= p.life) particles.splice(i, 1);
+      }
+
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i];
+        r.age += dt;
+        r.r = (r.age / r.life) * r.maxR;
+        if (r.age >= r.life) ripples.splice(i, 1);
+      }
+
+      for (let i = fireworks.length - 1; i >= 0; i--) {
+        const f = fireworks[i];
+        f.age += dt;
+        f.vx *= Math.pow(f.drag, dt);
+        f.vy *= Math.pow(f.drag, dt);
+        f.vy += f.gravity * dt;
+        f.x += f.vx * dt;
+        f.y += f.vy * dt;
+        if (f.age >= f.life) fireworks.splice(i, 1);
+      }
+
+      if (clickMomentAnim) {
+        clickMomentAnim.age += dt;
+        if (clickMomentAnim.age >= clickMomentAnim.duration) {
+          clickMomentAnim = null;
+        }
+      }
+    }
+
+    function update(dt, now) {
+      if (state === "playing" || state === "converge") {
+        updatePlayers(dt);
+        updateBubbles(dt, now);
+        checkBubbleCollection();
+        checkConvergence(dt);
+        updateTimer(now);
+      }
+      updateParticles(dt);
+      if (state === "won") updateParticles(dt);
+    }
+
+    function drawBackground(now) {
+      const t = now / 1000;
+      ctx.save();
+      for (const s of stars) {
+        const a = s.alpha + Math.sin(t * 1.5 + s.twinkle) * 0.1;
+        ctx.globalAlpha = Math.max(0.05, a);
+        ctx.fillStyle = "#e8f8ff";
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawString() {
+      const x1 = players[0].x, y1 = players[0].y;
+      const x2 = players[1].x, y2 = players[1].y;
+
+      ctx.save();
+      ctx.lineCap = "round";
+
+      for (let layer = 3; layer >= 0; layer--) {
+        const alpha = 0.15 + layer * 0.12;
+        const width = 4 + layer * 5;
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = layer % 2 === 0 ? "#7ee8ff" : "#ff9ec8";
+        ctx.shadowBlur = 20 + layer * 8;
+        ctx.shadowColor = layer % 2 === 0 ? "#6ec8ff" : "#ff8ab8";
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+
+      const midX = (x1 + x2) / 2;
+      const midY = (y1 + y2) / 2;
+      const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+      grad.addColorStop(0, "rgba(120, 230, 255, 0.9)");
+      grad.addColorStop(0.5, "rgba(255, 255, 255, 0.95)");
+      grad.addColorStop(1, "rgba(255, 160, 200, 0.9)");
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 24;
+      ctx.shadowColor = "#ffffff";
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawYoYo(player, now) {
+      const c = player.color;
+      const pulse = 1 + Math.sin(now / 400 + player.id) * 0.04;
+
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      const aura = ctx.createRadialGradient(player.x, player.y, player.radius * 0.2, player.x, player.y, player.radius * 2.2);
+      aura.addColorStop(0, c.soft);
+      aura.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = aura;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius * 2 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = c.glow;
+      ctx.strokeStyle = c.glow;
+      ctx.lineWidth = 2.5;
+      ctx.fillStyle = "rgba(255,255,255,0.04)";
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      const glass = ctx.createRadialGradient(
+        player.x - player.radius * 0.35,
+        player.y - player.radius * 0.4,
+        3,
+        player.x, player.y,
+        player.radius
+      );
+      glass.addColorStop(0, "rgba(255,255,255,0.45)");
+      glass.addColorStop(0.3, "rgba(255,255,255,0.08)");
+      glass.addColorStop(0.7, "rgba(255,255,255,0.02)");
+      glass.addColorStop(1, "rgba(255,255,255,0.12)");
+      ctx.fillStyle = glass;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius - 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      const inner = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, player.radius * 0.6);
+      inner.addColorStop(0, c.core);
+      inner.addColorStop(1, c.edge);
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = inner;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius * 0.55, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = "rgba(255,255,255,0.4)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(player.x - player.radius * 0.22, player.y - player.radius * 0.25, player.radius * 0.3, Math.PI * 1.1, Math.PI * 1.7);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawBubbles(now) {
+      const t = now / 1000;
+      for (const b of bubbles) {
+        if (b.collected) continue;
+        const col = WORD_COLORS[b.word];
+        const wobble = Math.sin(b.pulse) * 2;
+        const r = b.radius + wobble;
+
+        ctx.save();
+        ctx.globalAlpha = 0.85;
+        ctx.shadowBlur = 28;
+        ctx.shadowColor = col.glow;
+
+        const grad = ctx.createRadialGradient(b.x - r * 0.3, b.y - r * 0.3, r * 0.1, b.x, b.y, r);
+        grad.addColorStop(0, "rgba(255,255,255,0.35)");
+        grad.addColorStop(0.4, col.bg);
+        grad.addColorStop(1, "rgba(255,255,255,0.06)");
+        ctx.fillStyle = grad;
+        ctx.strokeStyle = "rgba(255,255,255,0.25)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = col.text;
+        ctx.font = `700 ${Math.round(14 + Math.sin(t + b.phase) * 0.5)}px Inter, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(b.word, b.x, b.y);
+        ctx.restore();
+      }
+    }
+
+    function drawCenterTarget(now) {
+      if (state !== "converge" && state !== "won") return;
+
+      const pulse = 1 + Math.sin(now / 300) * 0.15;
+      const alpha = state === "won" ? 0.3 : 0.5 + Math.sin(now / 400) * 0.2;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = "rgba(255,255,255,0.5)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, CENTER_RADIUS * pulse, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const glow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, CENTER_RADIUS * 2);
+      glow.addColorStop(0, "rgba(255,255,255,0.15)");
+      glow.addColorStop(0.5, "rgba(130,220,255,0.08)");
+      glow.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, CENTER_RADIUS * 2 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (meetTimer > 0 && state === "converge") {
+        ctx.globalAlpha = meetTimer / 0.6;
+        ctx.strokeStyle = "#7ee8ff";
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "#7ee8ff";
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, CENTER_RADIUS * 0.6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawClickMomentAnim(now) {
+      if (!clickMomentAnim) return;
+      const a = clickMomentAnim;
+      const progress = a.age / a.duration;
+      const alpha = 1 - progress;
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+
+      const burst = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, 80 + progress * 100);
+      burst.addColorStop(0, `rgba(255,255,255,${0.6 * alpha})`);
+      burst.addColorStop(0.3, `rgba(130,220,255,${0.3 * alpha})`);
+      burst.addColorStop(0.6, `rgba(255,150,200,${0.15 * alpha})`);
+      burst.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = burst;
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, 80 + progress * 100, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = `rgba(255,255,255,${0.9 * alpha})`;
+      ctx.font = `900 ${28 + progress * 12}px Inter, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = "#7ee8ff";
+      ctx.fillText("Click Moment", a.x, a.y - 10);
+      ctx.restore();
+    }
+
+    function drawRipples() {
+      ctx.save();
+      for (const r of ripples) {
+        const alpha = r.alpha * (1 - r.age / r.life);
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#7ee8ff";
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawParticles() {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      for (const p of [...particles, ...fireworks]) {
+        const alpha = 1 - p.age / p.life;
+        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.shadowBlur = p.glow ? 12 : 8;
+        ctx.shadowColor = p.color;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function draw(now) {
+      ctx.clearRect(0, 0, width, height);
+      drawBackground(now);
+      drawCenterTarget(now);
+      drawBubbles(now);
+      drawString();
+      drawYoYo(players[0], now);
+      drawYoYo(players[1], now);
+      drawRipples();
+      drawClickMomentAnim(now);
+      drawParticles();
+    }
+
+    function gameLoop(now) {
+      const dt = Math.min(0.033, (now - lastTime) / 1000 || 0);
+      lastTime = now;
+      update(dt, now);
+      draw(now);
+      requestAnimationFrame(gameLoop);
+    }
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    window.addEventListener("keydown", (e) => {
+      const key = e.key.toLowerCase();
+      if (["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(key)) {
+        e.preventDefault();
+      }
+      keys.add(key);
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys.delete(e.key.toLowerCase());
+    });
+
+    window.addEventListener("resize", () => {
+      resize();
+      createBubbles();
+    });
+
+    restartBtn.addEventListener("click", initGame);
+
+    initStars();
+    resize();
+    initGame();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
