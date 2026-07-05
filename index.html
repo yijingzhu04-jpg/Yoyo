@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Click Moment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="game-canvas"></canvas>
+
+    <div id="overlay">
+      <div id="timer" aria-live="polite">1:30</div>
+
+      <div id="intro" class="panel">
+        <h1>Click Moment</h1>
+        <p class="tagline">My click moment is always created through conversation.</p>
+        <div class="controls-hint">
+          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Player 1</span>
+          <span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> Player 2</span>
+        </div>
+        <p class="instruction">Guide the glowing ribbon through each broken circle.<br>Only the connection between you can reveal them.</p>
+        <button id="start-btn" type="button">Begin</button>
+      </div>
+
+      <div id="click-moment" class="panel hidden">
+        <h2>CLICK MOMENT</h2>
+        <p class="subtitle">Created through conversation.</p>
+        <button id="restart-btn" type="button">Begin Again</button>
+      </div>
+
+      <div id="time-up" class="panel hidden">
+        <h2>Time dissolved</h2>
+        <p class="subtitle">The conversation continues.</p>
+        <button id="retry-btn" type="button">Try Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="Script.js"></script>
+</body>
+</html>

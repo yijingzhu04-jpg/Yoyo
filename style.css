@@ -1,0 +1,211 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --accent: rgba(180, 210, 255, 0.9);
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.12);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #06060e;
+  font-family: "Cormorant Garamond", "Georgia", "Times New Roman", serif;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+#overlay .panel,
+#overlay button {
+  pointer-events: auto;
+}
+
+#timer {
+  position: absolute;
+  top: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.1rem;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  transition: opacity 0.6s ease, color 0.4s ease;
+}
+
+#timer.urgent {
+  color: rgba(255, 180, 180, 0.75);
+}
+
+#timer.hidden {
+  opacity: 0;
+}
+
+.panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  padding: 3rem 3.5rem;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 2px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    0 0 80px rgba(100, 140, 220, 0.08),
+    inset 0 0 40px rgba(255, 255, 255, 0.02);
+  animation: fadeIn 1.2s ease;
+  max-width: 90vw;
+}
+
+.panel.hidden {
+  display: none;
+}
+
+.panel h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 300;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.panel h2 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 300;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  animation: textReveal 2s ease 0.5s forwards;
+}
+
+.tagline {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-style: italic;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.subtitle {
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  font-style: italic;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  margin-bottom: 2.5rem;
+  opacity: 0;
+  animation: textReveal 2s ease 1.8s forwards;
+}
+
+.controls-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+
+.controls-hint span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0.2rem 0.45rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  min-width: 1.6rem;
+  text-align: center;
+}
+
+.instruction {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 2rem;
+  letter-spacing: 0.05em;
+}
+
+button {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  padding: 0.85rem 2.5rem;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  border-radius: 1px;
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(180, 210, 255, 0.4);
+  box-shadow: 0 0 30px rgba(120, 160, 255, 0.15);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -48%); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+@keyframes textReveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .panel {
+    padding: 2rem 1.5rem;
+  }
+
+  #timer {
+    top: 1.25rem;
+    font-size: 0.95rem;
+  }
+}
