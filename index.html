@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yo-Yo Phoenix</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070816;
+      --cyan: #69ecff;
+      --pink: #ff71d8;
+      --gold: #ffd36b;
+      --orange: #ff7a3d;
+      --green: #76ffb5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: white;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(105, 236, 255, 0.2), transparent 28%),
+        radial-gradient(circle at 82% 78%, rgba(255, 113, 216, 0.16), transparent 30%),
+        linear-gradient(145deg, #050611, var(--bg) 50%, #100716);
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px clamp(18px, 4vw, 42px);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .panel {
+      max-width: 440px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      background: rgba(8, 10, 30, 0.54);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28), inset 0 0 24px rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(16px);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.5rem, 3.2vw, 2.8rem);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-shadow: 0 0 24px rgba(105, 236, 255, 0.45);
+    }
+
+    p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.74);
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+
+    .progress-card {
+      text-align: right;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 8px;
+      color: rgba(255, 255, 255, 0.64);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    #progress {
+      display: flex;
+      gap: clamp(7px, 1.2vw, 12px);
+      justify-content: flex-end;
+      font-size: clamp(1.45rem, 3.6vw, 3rem);
+      font-weight: 900;
+      letter-spacing: 0.06em;
+    }
+
+    #progress span {
+      width: 0.9em;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.34);
+      text-shadow: none;
+    }
+
+    #progress span.filled {
+      color: var(--gold);
+      text-shadow: 0 0 8px var(--gold), 0 0 22px rgba(255, 122, 61, 0.8);
+      animation: pop 260ms ease-out;
+    }
+
+    .bottombar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
+    .controls strong {
+      color: white;
+    }
+
+    .controls.player-one {
+      border-color: rgba(105, 236, 255, 0.24);
+    }
+
+    .controls.player-two {
+      justify-self: end;
+      text-align: right;
+      border-color: rgba(255, 113, 216, 0.24);
+    }
+
+    .win-screen {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(255, 122, 61, 0.12), rgba(5, 6, 17, 0.82) 62%);
+    }
+
+    .win-screen.visible {
+      display: grid;
+    }
+
+    .win-card {
+      position: relative;
+      padding: clamp(28px, 5vw, 54px);
+      text-align: center;
+      border: 1px solid rgba(255, 211, 107, 0.36);
+      border-radius: 32px;
+      background: rgba(10, 8, 24, 0.74);
+      box-shadow: 0 0 70px rgba(255, 122, 61, 0.32), inset 0 0 50px rgba(255, 211, 107, 0.08);
+      backdrop-filter: blur(20px);
+      animation: floatWin 1800ms ease-in-out infinite alternate;
+    }
+
+    .phoenix {
+      width: min(58vw, 390px);
+      height: 190px;
+      margin: 0 auto 18px;
+      filter: drop-shadow(0 0 18px rgba(255, 211, 107, 0.9));
+    }
+
+    .phoenix path,
+    .phoenix circle {
+      transform-origin: 50% 60%;
+      animation: wingFlare 900ms ease-in-out infinite alternate;
+    }
+
+    .win-card h2 {
+      margin: 0;
+      font-size: clamp(2.4rem, 8vw, 6.2rem);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-shadow: 0 0 12px var(--gold), 0 0 38px var(--orange), 0 0 74px rgba(255, 113, 216, 0.6);
+    }
+
+    .win-card p {
+      margin-top: 10px;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 1rem;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.6); }
+      70% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes floatWin {
+      from { transform: translateY(8px) scale(0.99); }
+      to { transform: translateY(-8px) scale(1.01); }
+    }
+
+    @keyframes wingFlare {
+      from { transform: scale(0.96) rotate(-1deg); opacity: 0.86; }
+      to { transform: scale(1.04) rotate(1deg); opacity: 1; }
+    }
+
+    @media (max-width: 720px) {
+      .topbar,
+      .bottombar {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+      }
+
+      .progress-card,
+      .controls.player-two {
+        justify-self: stretch;
+        text-align: left;
+      }
+
+      #progress {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="Two-player yo-yo letter collection game"></canvas>
+
+  <div class="hud">
+    <div class="topbar">
+      <section class="panel">
+        <h1>Yo-Yo Phoenix</h1>
+        <p>Player 1 flips glowing tokens from above. Player 2 collects the revealed letters in order to spell PHOENIX.</p>
+      </section>
+      <section class="panel progress-card">
+        <span class="label">Phoenix word</span>
+        <div id="progress" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <div class="bottombar">
+      <section class="panel controls player-one">
+        <p><strong>Player 1:</strong> A / D move, W or Space shoots down to flip dots.</p>
+      </section>
+      <section class="panel controls player-two">
+        <p><strong>Player 2:</strong> Arrow keys move, Up shoots up to collect correct letters.</p>
+      </section>
+    </div>
+  </div>
+
+  <div id="winScreen" class="win-screen" role="status" aria-live="assertive">
+    <div class="win-card">
+      <svg class="phoenix" viewBox="0 0 420 210" aria-hidden="true">
+        <defs>
+          <linearGradient id="fire" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stop-color="#fff3a3"/>
+            <stop offset="46%" stop-color="#ff8a3d"/>
+            <stop offset="100%" stop-color="#ff48c5"/>
+          </linearGradient>
+        </defs>
+        <path d="M210 30 C174 78 136 88 62 72 C96 114 134 129 184 115 C126 143 94 167 62 202 C124 181 172 159 210 118 C248 159 296 181 358 202 C326 167 294 143 236 115 C286 129 324 114 358 72 C284 88 246 78 210 30Z" fill="url(#fire)" opacity="0.96"/>
+        <path d="M210 58 C198 84 194 105 210 134 C226 105 222 84 210 58Z" fill="#fff5ba"/>
+        <circle cx="210" cy="84" r="11" fill="#fff8d8"/>
+      </svg>
+      <h2>PHOENIX!</h2>
+      <p>You collected every letter in order. Refresh to play again.</p>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // Easy tuning and difficulty
+    // =========================
+    const CONFIG = {
+      word: "PHOENIX",              // Change the target word here.
+      dotSpeed: 128,                // Pixels per second; higher values make the stream faster.
+      dotSpacing: 96,               // Space between stream tokens.
+      dotRadius: 17,
+      letterChance: 0.46,           // Chance that a hidden token has a letter instead of being empty.
+      playerSpeed: 390,
+      shootDistance: 158,
+      shootDuration: 0.28,          // Seconds for one elastic yo-yo strike.
+      maxDots: 22,
+      controls: {                   // Adjust controls here if desired.
+        player1Left: ["KeyA"],
+        player1Right: ["KeyD"],
+        player1Shoot: ["KeyW", "Space"],
+        player2Left: ["ArrowLeft"],
+        player2Right: ["ArrowRight"],
+        player2Shoot: ["ArrowUp"]
+      }
+    };
+
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const progressEl = document.getElementById("progress");
+    const winScreen = document.getElementById("winScreen");
+
+    const keys = new Set();
+    const dots = [];
+    const particles = [];
+    let width = 0;
+    let height = 0;
+    let centerY = 0;
+    let lastTime = performance.now();
+    let wordIndex = 0;
+    let won = false;
+
+    const players = {
+      one: {
+        x: 0,
+        baseY: 0,
+        radius: 23,
+        color: "#69ecff",
+        accent: "#dcfbff",
+        direction: 1,
+        shot: null,
+        cooldown: 0
+      },
+      two: {
+        x: 0,
+        baseY: 0,
+        radius: 23,
+        color: "#ff71d8",
+        accent: "#fff0fb",
+        direction: -1,
+        shot: null,
+        cooldown: 0
+      }
+    };
+
+    function resize() {
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      centerY = height * 0.5;
+
+      canvas.width = Math.floor(width * pixelRatio);
+      canvas.height = Math.floor(height * pixelRatio);
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+      players.one.baseY = Math.max(132, centerY - 180);
+      players.two.baseY = Math.min(height - 132, centerY + 180);
+      players.one.x = players.one.x || width * 0.35;
+      players.two.x = players.two.x || width * 0.65;
+    }
+
+    function resetProgress() {
+      progressEl.innerHTML = "";
+      [...CONFIG.word].forEach(() => {
+        const span = document.createElement("span");
+        span.textContent = "_";
+        progressEl.appendChild(span);
+      });
+    }
+
+    function isPressed(codes) {
+      return codes.some(code => keys.has(code));
+    }
+
+    function hiddenLetterForNewDot() {
+      if (Math.random() > CONFIG.letterChance) {
+        return "";
+      }
+
+      // Bias upcoming needed letters into the stream while mixing in decoys.
+      if (Math.random() < 0.62) {
+        const lookAhead = Math.floor(Math.random() * Math.min(3, CONFIG.word.length - wordIndex));
+        return CONFIG.word[Math.min(wordIndex + lookAhead, CONFIG.word.length - 1)];
+      }
+
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      return alphabet[Math.floor(Math.random() * alphabet.length)];
+    }
+
+    function seedDots() {
+      dots.length = 0;
+      const startX = width * 0.18;
+      for (let i = 0; i < CONFIG.maxDots; i += 1) {
+        dots.push(createDot(startX + i * CONFIG.dotSpacing));
+      }
+    }
+
+    function createDot(x) {
+      return {
+        x,
+        y: centerY + Math.sin(x * 0.012) * 12,
+        radius: CONFIG.dotRadius,
+        letter: hiddenLetterForNewDot(),
+        revealed: false,
+        collected: false,
+        flipSpin: 0,
+        pulse: Math.random() * Math.PI * 2
+      };
+    }
+
+    function shoot(player) {
+      if (player.shot || player.cooldown > 0 || won) {
+        return;
+      }
+
+      player.shot = {
+        age: 0,
+        hitDone: false
+      };
+      player.cooldown = 0.12;
+    }
+
+    function shotPosition(player) {
+      if (!player.shot) {
+        return { x: player.x, y: player.baseY, progress: 0 };
+      }
+
+      const t = Math.min(player.shot.age / CONFIG.shootDuration, 1);
+      const elastic = Math.sin(Math.PI * t);
+      const overshoot = Math.sin(Math.PI * Math.min(t * 1.2, 1)) * 10;
+      return {
+        x: player.x,
+        y: player.baseY + player.direction * (CONFIG.shootDistance * elastic + overshoot),
+        progress: t
+      };
+    }
+
+    function updatePlayer(player, leftCodes, rightCodes, shootCodes, dt) {
+      const left = isPressed(leftCodes);
+      const right = isPressed(rightCodes);
+      const movement = (right ? 1 : 0) - (left ? 1 : 0);
+      player.x += movement * CONFIG.playerSpeed * dt;
+      player.x = clamp(player.x, 42, width - 42);
+      player.cooldown = Math.max(0, player.cooldown - dt);
+
+      if (isPressed(shootCodes)) {
+        shoot(player);
+      }
+
+      if (player.shot) {
+        player.shot.age += dt;
+        if (player.shot.age >= CONFIG.shootDuration) {
+          player.shot = null;
+        }
+      }
+    }
+
+    function updateDots(dt) {
+      for (const dot of dots) {
+        dot.x -= CONFIG.dotSpeed * dt;
+        dot.y = centerY + Math.sin(dot.x * 0.014) * 12;
+        dot.pulse += dt * 4;
+        dot.flipSpin = Math.max(0, dot.flipSpin - dt * 5.5);
+      }
+
+      while (dots.length && dots[0].x < -CONFIG.dotRadius * 3) {
+        dots.shift();
+      }
+
+      while (dots.length < CONFIG.maxDots) {
+        const lastX = dots.length ? dots[dots.length - 1].x : width;
+        const nextX = Math.max(width + CONFIG.dotSpacing, lastX + CONFIG.dotSpacing);
+        dots.push(createDot(nextX));
+      }
+    }
+
+    function updateParticles(dt) {
+      for (let i = particles.length - 1; i >= 0; i -= 1) {
+        const p = particles[i];
+        p.age += dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += p.gravity * dt;
+        if (p.age >= p.life) {
+          particles.splice(i, 1);
+        }
+      }
+    }
+
+    function handleCollisions() {
+      const p1 = shotPosition(players.one);
+      const p2 = shotPosition(players.two);
+
+      if (players.one.shot && !players.one.shot.hitDone) {
+        for (const dot of dots) {
+          if (!dot.revealed && !dot.collected && distance(p1.x, p1.y, dot.x, dot.y) < dot.radius + 18) {
+            dot.revealed = true;
+            dot.flipSpin = 1;
+            players.one.shot.hitDone = true;
+            burst(dot.x, dot.y, dot.letter ? "#ffd36b" : "#69ecff", 18, 120);
+            break;
+          }
+        }
+      }
+
+      if (players.two.shot && !players.two.shot.hitDone) {
+        for (const dot of dots) {
+          if (!dot.revealed || dot.collected || !dot.letter) {
+            continue;
+          }
+
+          if (distance(p2.x, p2.y, dot.x, dot.y) < dot.radius + 18) {
+            const needed = CONFIG.word[wordIndex];
+            players.two.shot.hitDone = true;
+            if (dot.letter === needed) {
+              dot.collected = true;
+              collectLetter(dot);
+              burst(dot.x, dot.y, "#76ffb5", 28, 180);
+            } else {
+              dot.flipSpin = 1;
+              burst(dot.x, dot.y, "#ff71d8", 12, 85);
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    function collectLetter(dot) {
+      const slots = progressEl.querySelectorAll("span");
+      slots[wordIndex].textContent = dot.letter;
+      slots[wordIndex].classList.add("filled");
+      wordIndex += 1;
+
+      if (wordIndex >= CONFIG.word.length) {
+        won = true;
+        winScreen.classList.add("visible");
+        for (let i = 0; i < 9; i += 1) {
+          setTimeout(() => burst(width * (0.2 + Math.random() * 0.6), height * (0.22 + Math.random() * 0.42), randomFireColor(), 48, 260), i * 150);
+        }
+      }
+    }
+
+    function burst(x, y, color, count, speed) {
+      for (let i = 0; i < count; i += 1) {
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = speed * (0.35 + Math.random() * 0.75);
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * velocity,
+          vy: Math.sin(angle) * velocity,
+          radius: 1.8 + Math.random() * 3.6,
+          color,
+          age: 0,
+          life: 0.42 + Math.random() * 0.62,
+          gravity: 22
+        });
+      }
+    }
+
+    function randomFireColor() {
+      return ["#fff3a3", "#ffd36b", "#ff8a3d", "#ff48c5", "#76ffb5"][Math.floor(Math.random() * 5)];
+    }
+
+    function update(dt) {
+      updatePlayer(players.one, CONFIG.controls.player1Left, CONFIG.controls.player1Right, CONFIG.controls.player1Shoot, dt);
+      updatePlayer(players.two, CONFIG.controls.player2Left, CONFIG.controls.player2Right, CONFIG.controls.player2Shoot, dt);
+      updateDots(dt);
+      updateParticles(dt);
+      handleCollisions();
+
+      if (won && Math.random() < dt * 7) {
+        burst(width * (0.15 + Math.random() * 0.7), height * (0.16 + Math.random() * 0.58), randomFireColor(), 20, 210);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      drawBackground();
+      drawStreamGuide();
+      dots.forEach(drawDot);
+      drawPlayer(players.one, "P1");
+      drawPlayer(players.two, "P2");
+      particles.forEach(drawParticle);
+    }
+
+    function drawBackground() {
+      ctx.save();
+      ctx.globalAlpha = 0.36;
+      for (let i = 0; i < 72; i += 1) {
+        const x = (i * 157 + performance.now() * 0.006) % width;
+        const y = (i * 83) % height;
+        ctx.fillStyle = i % 3 === 0 ? "#69ecff" : "#ffffff";
+        ctx.beginPath();
+        ctx.arc(x, y, i % 4 === 0 ? 1.4 : 0.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawStreamGuide() {
+      const gradient = ctx.createLinearGradient(0, centerY, width, centerY);
+      gradient.addColorStop(0, "rgba(105, 236, 255, 0)");
+      gradient.addColorStop(0.5, "rgba(105, 236, 255, 0.24)");
+      gradient.addColorStop(1, "rgba(105, 236, 255, 0)");
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 18]);
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(width, centerY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function drawDot(dot) {
+      if (dot.collected) {
+        return;
+      }
+
+      const glow = dot.revealed ? (dot.letter ? "#ffd36b" : "#7d8cff") : "#69ecff";
+      const flipScale = dot.flipSpin > 0 ? Math.abs(Math.cos(dot.flipSpin * Math.PI * 3)) : 1;
+      const pulse = 1 + Math.sin(dot.pulse) * 0.06;
+
+      ctx.save();
+      ctx.translate(dot.x, dot.y);
+      ctx.scale(Math.max(0.18, flipScale) * pulse, pulse);
+      ctx.shadowBlur = dot.revealed ? 24 : 16;
+      ctx.shadowColor = glow;
+      ctx.fillStyle = dot.revealed ? "rgba(255, 255, 255, 0.12)" : "rgba(105, 236, 255, 0.2)";
+      ctx.strokeStyle = glow;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, dot.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      if (dot.revealed) {
+        ctx.shadowBlur = dot.letter ? 18 : 4;
+        ctx.fillStyle = dot.letter ? "#fff3a3" : "rgba(255, 255, 255, 0.26)";
+        ctx.font = dot.letter ? "bold 20px ui-sans-serif, system-ui" : "bold 18px ui-sans-serif, system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(dot.letter || "·", 0, 1);
+      } else {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.beginPath();
+        ctx.arc(-5, -5, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    function drawPlayer(player, label) {
+      const shot = shotPosition(player);
+      const spin = performance.now() * 0.013 * player.direction;
+
+      ctx.save();
+      ctx.strokeStyle = player.color;
+      ctx.lineWidth = 1.6;
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = player.color;
+      ctx.beginPath();
+      ctx.moveTo(player.x, player.baseY);
+      ctx.quadraticCurveTo(player.x + Math.sin(shot.progress * Math.PI * 2) * 15, (player.baseY + shot.y) * 0.5, shot.x, shot.y);
+      ctx.stroke();
+
+      ctx.translate(shot.x, shot.y);
+      ctx.rotate(spin);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+      ctx.strokeStyle = player.color;
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 28;
+      ctx.beginPath();
+      ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = player.accent;
+      ctx.beginPath();
+      ctx.arc(0, 0, player.radius * 0.55, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-player.radius * 0.75, 0);
+      ctx.lineTo(player.radius * 0.75, 0);
+      ctx.moveTo(0, -player.radius * 0.75);
+      ctx.lineTo(0, player.radius * 0.75);
+      ctx.stroke();
+
+      ctx.rotate(-spin);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px ui-sans-serif, system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(label, 0, 1);
+      ctx.restore();
+    }
+
+    function drawParticle(p) {
+      const t = p.age / p.life;
+      ctx.save();
+      ctx.globalAlpha = 1 - t;
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = p.color;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius * (1 - t * 0.45), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function distance(x1, y1, x2, y2) {
+      return Math.hypot(x1 - x2, y1 - y2);
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function loop(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.033);
+      lastTime = now;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener("keydown", event => {
+      keys.add(event.code);
+      if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) {
+        event.preventDefault();
+      }
+    });
+
+    window.addEventListener("keyup", event => {
+      keys.delete(event.code);
+    });
+
+    window.addEventListener("resize", () => {
+      resize();
+      seedDots();
+    });
+
+    resize();
+    resetProgress();
+    seedDots();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
