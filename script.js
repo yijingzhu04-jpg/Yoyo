@@ -69,8 +69,8 @@ function initializeGame() {
 
   updateGameMeasurements();
   resetPlayers();
-  resetDots();
   resetProgress();
+  resetDots();
   clearEffects();
   isPaused = false;
   victoryTimer = 0;
