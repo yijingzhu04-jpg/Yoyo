@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHOENIX Yo-Yo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <header class="hud" aria-label="Game status">
+      <div>
+        <p class="eyebrow">Co-op reveal and collect</p>
+        <h1>PHOENIX Yo-Yo</h1>
+      </div>
+      <div class="progress-panel">
+        <span class="progress-label">Progress</span>
+        <div id="progress" class="progress-word" aria-live="polite">_ _ _ _ _ _ _</div>
+      </div>
+    </header>
+
+    <section class="arena-wrap" aria-label="PHOENIX game arena">
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+      <div id="victory" class="victory hidden" role="status" aria-live="assertive">
+        <p class="victory-kicker">The last spark locks in</p>
+        <h2>PHOENIX COMPLETE!</h2>
+        <p>Perfect reveal. Perfect catch.</p>
+        <button id="restartButton" type="button">Play again</button>
+      </div>
+    </section>
+
+    <footer class="controls" aria-label="Controls">
+      <div>
+        <strong>Player 1 - Reveal</strong>
+        <span>A / D to move, W to shoot down</span>
+      </div>
+      <div>
+        <strong>Player 2 - Collect</strong>
+        <span>Left / Right to move, Up to shoot up</span>
+      </div>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

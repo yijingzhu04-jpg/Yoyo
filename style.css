@@ -1,0 +1,242 @@
+:root {
+  color-scheme: dark;
+  --bg: #03050d;
+  --panel: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.14);
+  --text: #f6f8ff;
+  --muted: #9aa4bd;
+  --glow: rgba(255, 255, 255, 0.62);
+  --accent: #ffefe5;
+  --danger: #ff4d5e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(89, 97, 150, 0.17), transparent 42%),
+    radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.06), transparent 24%),
+    linear-gradient(180deg, #060815 0%, var(--bg) 100%);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.game-shell {
+  width: min(1180px, calc(100vw - 32px));
+  display: grid;
+  gap: 16px;
+}
+
+.hud,
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.eyebrow,
+.progress-label {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.35rem, 3vw, 2.4rem);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.28);
+}
+
+.progress-panel {
+  min-width: min(360px, 50vw);
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.progress-word {
+  font-size: clamp(1.45rem, 3.3vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.54);
+  white-space: nowrap;
+}
+
+.arena-wrap {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.09), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.42),
+    0 0 90px rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.arena-wrap.error {
+  animation: arena-shake 360ms ease, error-flash 420ms ease;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: min(68vh, 720px);
+}
+
+.controls {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.controls div {
+  display: grid;
+  gap: 3px;
+}
+
+.controls strong {
+  color: var(--text);
+}
+
+.victory {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: 32px;
+  text-align: center;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.08) 28%, rgba(3, 5, 13, 0.74) 62%),
+    rgba(3, 5, 13, 0.42);
+  opacity: 1;
+  transition: opacity 420ms ease, filter 420ms ease;
+  backdrop-filter: blur(6px);
+}
+
+.victory.hidden {
+  pointer-events: none;
+  opacity: 0;
+  filter: blur(12px);
+}
+
+.victory-kicker {
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.55);
+}
+
+.victory h2 {
+  margin: 0;
+  font-size: clamp(2.5rem, 8vw, 6.5rem);
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 0 18px rgba(255, 255, 255, 0.88),
+    0 0 68px rgba(255, 235, 215, 0.74);
+}
+
+.victory p {
+  color: #dfe5f8;
+}
+
+button {
+  margin-top: 18px;
+  padding: 12px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #090b13;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 0 28px rgba(255, 255, 255, 0.36);
+}
+
+button:hover,
+button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 0 36px rgba(255, 255, 255, 0.55);
+}
+
+@keyframes arena-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  45% {
+    transform: translateX(7px);
+  }
+  70% {
+    transform: translateX(-4px);
+  }
+}
+
+@keyframes error-flash {
+  0%,
+  100% {
+    box-shadow:
+      0 30px 90px rgba(0, 0, 0, 0.42),
+      0 0 90px rgba(255, 255, 255, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  35% {
+    box-shadow:
+      0 30px 90px rgba(0, 0, 0, 0.42),
+      0 0 96px rgba(255, 77, 94, 0.42),
+      inset 0 0 68px rgba(255, 77, 94, 0.22);
+  }
+}
+
+@media (max-width: 760px) {
+  body {
+    overflow: auto;
+    padding: 16px 0;
+  }
+
+  .hud,
+  .controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .progress-panel {
+    min-width: 100%;
+  }
+}
