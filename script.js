@@ -328,6 +328,7 @@ function updateTimer(dt) {
 }
 
 function completeGame() {
+  state.active = false;
   state.slowMotion = 0.18;
   spawnVictoryEffects();
   gameShell.classList.add("victory-glow");
