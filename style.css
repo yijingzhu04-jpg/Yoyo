@@ -227,6 +227,7 @@ button:hover {
   opacity: 0.76;
   font-size: 0.82em;
   letter-spacing: 0.08em;
+  text-align: center;
   text-transform: uppercase;
 }
 
