@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHOENIX Yo-Yo Relay</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <header class="hud" aria-label="Game status">
+      <div class="timer" id="timer">TIME: 60</div>
+      <div class="progress" id="progress" aria-label="Collected letters">_ _ _ _ _ _ _</div>
+      <div class="cooldown" id="cooldown">P1 READY</div>
+    </header>
+
+    <section class="arena" id="arena" aria-label="Two-player PHOENIX game">
+      <canvas id="gameCanvas"></canvas>
+
+      <div class="overlay hidden" id="overlay" role="status" aria-live="polite">
+        <div class="overlay-card">
+          <p class="kicker" id="overlayKicker">Victory</p>
+          <h1 id="overlayTitle">PHOENIX COMPLETE!</h1>
+          <p id="overlayText">The hidden letters have risen from the stream.</p>
+          <button id="restartButton" type="button">Play Again</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="instructions">
+      <div><strong>Player 1 Reveal:</strong> A / D to move, W to shoot down.</div>
+      <div><strong>Player 2 Collect:</strong> Left / Right to move, Up Arrow to shoot up.</div>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
