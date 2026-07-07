@@ -11,7 +11,9 @@ const TARGET_WORD = "PHOENIX";
 const DOT_RADIUS = 9;
 const YOYO_RADIUS = 18;
 const GAME_TIME = 60;
-const DOT_JITTER = 26;
+const DOT_SPACING_VARIANCE = 58;
+const DOT_MIN_SPACING = 46;
+const DOT_MAX_SPACING = 152;
 const FORCE_LETTER_AFTER = 8;
 
 const canvas = document.getElementById("gameCanvas");
@@ -166,7 +168,9 @@ function chooseHiddenLetter() {
 }
 
 function nextSpacing() {
-  return DOT_SPACING + (Math.random() * DOT_JITTER - DOT_JITTER / 2);
+  // Bias spacing toward occasional clusters and gaps so the stream feels organic.
+  const skewedRandom = Math.sign(Math.random() - 0.5) * Math.pow(Math.random(), 0.55);
+  return clamp(DOT_SPACING + skewedRandom * DOT_SPACING_VARIANCE, DOT_MIN_SPACING, DOT_MAX_SPACING);
 }
 
 function updateHud() {
