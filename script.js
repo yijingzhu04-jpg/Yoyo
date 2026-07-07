@@ -494,15 +494,6 @@ function drawDots() {
       ctx.shadowBlur = 16;
       ctx.fillText(dot.letter, dot.x, dot.y + 0.5);
       ctx.restore();
-    } else if (showingBack) {
-      ctx.save();
-      ctx.strokeStyle = "rgba(10,16,30,0.52)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(dot.x - dot.radius * 0.32, dot.y);
-      ctx.lineTo(dot.x + dot.radius * 0.32, dot.y);
-      ctx.stroke();
-      ctx.restore();
     }
   }
 }
