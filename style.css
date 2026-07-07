@@ -1,0 +1,274 @@
+:root {
+  color-scheme: dark;
+  --bg: #050711;
+  --panel: rgba(12, 17, 34, 0.62);
+  --line: rgba(255, 255, 255, 0.16);
+  --text: #f7fbff;
+  --muted: #aeb8cc;
+  --accent: #ffffff;
+  --danger: #ff4268;
+  --gold: #ffc76f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(42, 55, 95, 0.18), transparent 38%),
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.05), transparent 24%),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.9rem 1.45rem;
+  color: #050711;
+  background: linear-gradient(135deg, #ffffff, #cfd9ff);
+  box-shadow: 0 0 28px rgba(255, 255, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  font: 800 0.82rem/1 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 42px rgba(255, 255, 255, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.game-shell {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 560px;
+  isolation: isolate;
+}
+
+.game-shell::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(circle at center, black 0%, transparent 74%);
+}
+
+.game-shell.victory-glow {
+  animation: victoryPulse 1.5s ease-in-out infinite alternate;
+}
+
+.game-shell.error-flash {
+  animation: errorFlash 360ms ease;
+}
+
+.hud {
+  position: absolute;
+  top: clamp(16px, 3vh, 34px);
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  gap: clamp(10px, 2vw, 20px);
+  align-items: center;
+  justify-content: center;
+  width: min(92vw, 760px);
+  transform: translateX(-50%);
+}
+
+.hud-card {
+  min-width: 132px;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--panel);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  text-align: center;
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.45);
+}
+
+.timer {
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.progress {
+  flex: 1;
+  font-size: clamp(1.1rem, 2.5vw, 1.85rem);
+  font-weight: 900;
+  letter-spacing: clamp(0.28rem, 1.3vw, 0.7rem);
+}
+
+#gameCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.instructions {
+  position: absolute;
+  bottom: clamp(18px, 3vh, 34px);
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  gap: clamp(10px, 2vw, 22px);
+  justify-content: center;
+  width: min(92vw, 860px);
+  transform: translateX(-50%);
+  color: var(--muted);
+  font-size: clamp(0.76rem, 1.6vw, 0.95rem);
+  text-align: center;
+}
+
+.instructions div {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(5, 7, 17, 0.44);
+  backdrop-filter: blur(10px);
+}
+
+.instructions strong {
+  color: var(--text);
+}
+
+.screen-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.12), rgba(5, 7, 17, 0.82) 58%);
+  transition: opacity 360ms ease;
+}
+
+.screen-overlay.show {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.screen-card {
+  width: min(92vw, 560px);
+  padding: clamp(1.8rem, 5vw, 3.4rem);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 34px;
+  background: linear-gradient(180deg, rgba(18, 24, 47, 0.88), rgba(7, 10, 23, 0.92));
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  text-align: center;
+  backdrop-filter: blur(18px);
+  transform: translateY(12px) scale(0.98);
+  transition: transform 360ms ease;
+}
+
+.screen-overlay.show .screen-card {
+  transform: translateY(0) scale(1);
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2.5rem, 8vw, 5.2rem);
+  line-height: 0.9;
+  letter-spacing: -0.07em;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.48), 0 0 70px rgba(255, 199, 111, 0.28);
+}
+
+h2 {
+  font-size: clamp(2.2rem, 7vw, 4.6rem);
+}
+
+.screen-card p:not(.eyebrow) {
+  max-width: 36rem;
+  margin: 1.15rem auto 1.6rem;
+  color: var(--muted);
+  font-size: clamp(0.98rem, 2vw, 1.12rem);
+  line-height: 1.65;
+}
+
+.result-card.win {
+  border-color: rgba(255, 199, 111, 0.45);
+  box-shadow: 0 0 130px rgba(255, 199, 111, 0.22), 0 28px 100px rgba(0, 0, 0, 0.5);
+}
+
+.result-card.lose {
+  border-color: rgba(255, 66, 104, 0.42);
+  box-shadow: 0 0 85px rgba(255, 66, 104, 0.16), 0 28px 100px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes victoryPulse {
+  from {
+    filter: brightness(1) saturate(1);
+  }
+
+  to {
+    filter: brightness(1.22) saturate(1.18);
+  }
+}
+
+@keyframes errorFlash {
+  0%,
+  100% {
+    filter: none;
+    transform: translateX(0);
+  }
+
+  20% {
+    filter: drop-shadow(0 0 20px rgba(255, 66, 104, 0.7));
+    transform: translateX(-5px);
+  }
+
+  45% {
+    transform: translateX(5px);
+  }
+
+  70% {
+    transform: translateX(-2px);
+  }
+}
+
+@media (max-width: 720px) {
+  .hud,
+  .instructions {
+    flex-direction: column;
+  }
+
+  .hud-card,
+  .instructions div {
+    width: 100%;
+  }
+
+  .progress {
+    letter-spacing: 0.32rem;
+  }
+}
