@@ -7,36 +7,36 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="game-shell" aria-label="Two-player PHOENIX yo-yo game">
-    <section class="hud" aria-live="polite">
-      <div class="hud-card timer" id="timer">TIME: 60</div>
-      <div class="hud-card progress" id="progress" aria-label="Collected word progress">_ _ _ _ _ _ _</div>
+  <main class="app" id="app" aria-label="PHOENIX two-player yo-yo game">
+    <header class="hud" aria-live="polite">
+      <div class="hud__pill" id="timer">TIME: 60</div>
+      <div class="hud__progress" id="progress" aria-label="Word progress">_ _ _ _ _ _ _</div>
+    </header>
+
+    <canvas id="gameCanvas" aria-label="Game canvas"></canvas>
+
+    <aside class="controls" aria-label="Controls">
+      <p><span>P1 Reveal</span> A / D move &middot; W shoot down</p>
+      <p><span>P2 Collect</span> Left / Right move &middot; Up shoot up</p>
+    </aside>
+
+    <section class="overlay overlay--visible" id="startScreen" aria-labelledby="startTitle">
+      <article class="modal">
+        <p class="modal__eyebrow">Co-op timing game</p>
+        <h1 id="startTitle">PHOENIX<br>YO-YO</h1>
+        <p>Reveal glowing stream dots, collect only flipped letters in order, and complete PHOENIX before the timer ends.</p>
+        <button id="startButton" type="button">Begin</button>
+      </article>
     </section>
 
-    <canvas id="gameCanvas" aria-label="Game area"></canvas>
-
-    <section class="instructions" aria-label="Controls">
-      <div><strong>Player 1</strong> A / D move, W shoots down to reveal</div>
-      <div><strong>Player 2</strong> Left / Right move, Up shoots up to collect</div>
-    </section>
-
-    <div class="screen-overlay show" id="startScreen">
-      <div class="screen-card">
-        <p class="eyebrow">Co-op reveal and collect</p>
-        <h1>PHOENIX YO-YO</h1>
-        <p>Reveal hidden letters from the glowing stream, then collect them in order before time runs out.</p>
-        <button id="startButton" type="button">Start Game</button>
-      </div>
-    </div>
-
-    <div class="screen-overlay" id="endScreen" aria-live="assertive">
-      <div class="screen-card result-card" id="resultCard">
-        <p class="eyebrow" id="resultEyebrow">Result</p>
+    <section class="overlay" id="endScreen" aria-live="assertive" aria-labelledby="resultTitle">
+      <article class="modal modal--result" id="resultCard">
+        <p class="modal__eyebrow" id="resultEyebrow">Result</p>
         <h2 id="resultTitle">PHOENIX COMPLETE!</h2>
         <p id="resultText">The firebird rises.</p>
         <button id="restartButton" type="button">Play Again</button>
-      </div>
-    </div>
+      </article>
+    </section>
   </main>
 
   <script src="script.js"></script>
