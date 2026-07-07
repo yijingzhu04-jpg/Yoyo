@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHOENIX Yo-Yo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <section class="hud" aria-label="Game status">
+      <div>
+        <p class="eyebrow">Co-op Yo-Yo Cipher</p>
+        <h1>PHOENIX</h1>
+      </div>
+      <div class="progress-card">
+        <span class="progress-label">Progress</span>
+        <div id="progress" class="progress" aria-live="polite">_ _ _ _ _ _ _</div>
+      </div>
+    </section>
+
+    <section id="game" class="game" aria-label="PHOENIX two-player game">
+      <div class="ambient-ring ring-one"></div>
+      <div class="ambient-ring ring-two"></div>
+      <div id="streamGuide" class="stream-guide"></div>
+      <div id="dotsLayer" class="dots-layer"></div>
+      <div id="effectsLayer" class="effects-layer"></div>
+
+      <div id="playerTop" class="player player-top">
+        <div class="string"></div>
+        <div class="anchor"></div>
+        <div class="yoyo"></div>
+        <div class="player-label">P1 · A/D · W reveal</div>
+        <div class="cooldown-meter"><span></span></div>
+      </div>
+
+      <div id="playerBottom" class="player player-bottom">
+        <div class="string"></div>
+        <div class="anchor"></div>
+        <div class="yoyo"></div>
+        <div class="player-label">P2 · ←/→ · ↑ collect</div>
+      </div>
+
+      <div id="message" class="message"></div>
+
+      <div id="victory" class="victory" aria-hidden="true">
+        <div class="victory-card">
+          <div class="victory-orb"></div>
+          <p class="eyebrow">Signal restored</p>
+          <h2>PHOENIX COMPLETE!</h2>
+          <p>The stream ignites. Nice teamwork.</p>
+          <button id="restartButton" type="button">Play Again</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="instructions" aria-label="Controls">
+      <span><strong>Player 1:</strong> A / D move, W shoots down to reveal.</span>
+      <span><strong>Player 2:</strong> Arrow keys move, Up shoots to collect flipped dots.</span>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
