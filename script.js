@@ -637,6 +637,12 @@ function easeOutCubic(value) {
 }
 
 window.addEventListener("keydown", event => {
+  if (event.code === "KeyR") {
+    event.preventDefault();
+    resetGame();
+    return;
+  }
+
   if (["KeyA", "KeyD", "KeyW", "ArrowLeft", "ArrowRight", "ArrowUp"].includes(event.code)) {
     event.preventDefault();
     keys.add(event.code);

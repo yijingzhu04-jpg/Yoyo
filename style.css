@@ -167,6 +167,28 @@ body {
   color: var(--muted);
 }
 
+.restart-hint {
+  margin: 18px 0 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.8em;
+  margin: 0 0.18em;
+  padding: 0.18em 0.46em;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.26), 0 0 18px rgba(255, 255, 255, 0.14);
+  font: inherit;
+}
+
 button {
   margin-top: 14px;
   padding: 13px 24px;
