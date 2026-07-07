@@ -222,6 +222,14 @@ button:hover {
   color: var(--text);
 }
 
+.restart-line {
+  flex-basis: 100%;
+  opacity: 0.76;
+  font-size: 0.82em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 @keyframes errorFlash {
   0%,
   100% {
