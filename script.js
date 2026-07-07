@@ -54,6 +54,10 @@ const players = {
   }),
 };
 
+// ---------------------------------------------------------------------------
+// Setup and dot generation
+// ---------------------------------------------------------------------------
+
 function createPlayer(config) {
   return {
     ...config,
@@ -103,7 +107,9 @@ function seedDots() {
 
 function createDot(x) {
   return {
-    id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+    id: globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID()
+      : `${Date.now()}-${Math.random()}`,
     x,
     y: centerY,
     radius: 11,
@@ -144,6 +150,10 @@ function updateProgressDisplay() {
     .join(" ");
 }
 
+// ---------------------------------------------------------------------------
+// Main game loop
+// ---------------------------------------------------------------------------
+
 function update(delta) {
   const timeScale = gameWon ? 0.34 : 1;
   const scaledDelta = delta * timeScale;
@@ -163,6 +173,10 @@ function update(delta) {
   detectCollisions();
   screenGlow = Math.max(0, screenGlow - delta * 1.8);
 }
+
+// ---------------------------------------------------------------------------
+// Player movement, shooting, and yo-yo return behavior
+// ---------------------------------------------------------------------------
 
 function updatePlayers(delta) {
   updatePlayerMovement(players.top, delta);
@@ -229,6 +243,10 @@ function updateYoyo(player, delta) {
     .filter((point) => point.life > 0)
     .slice(0, 9);
 }
+
+// ---------------------------------------------------------------------------
+// Dot scrolling, reveal flips, collision, and collection rules
+// ---------------------------------------------------------------------------
 
 function updateDots(delta) {
   for (const dot of dots) {
@@ -313,6 +331,8 @@ function collectDot(dot) {
   }
 }
 
+// Existing letters are cleared after progress changes so newly collected
+// letters always match the current target and the game remains completable.
 function clearStaleLetters() {
   const expected = TARGET_WORD[progressIndex];
   for (const dot of dots) {
@@ -332,6 +352,10 @@ function punish(x, y, color) {
   void arenaWrap.offsetWidth;
   arenaWrap.classList.add("error");
 }
+
+// ---------------------------------------------------------------------------
+// Victory, particles, and other effects
+// ---------------------------------------------------------------------------
 
 function triggerVictory() {
   gameWon = true;
@@ -471,11 +495,12 @@ function drawDots() {
   for (const dot of dots) {
     const removeScale = dot.removing ? 1 - easeInOut(dot.removeProgress) : 1;
     const flipScale = dot.flipped ? Math.abs(Math.cos(dot.flipProgress * Math.PI)) : 1;
+    const visibleFlipScale = Math.max(0.14, flipScale);
     const radius = dot.radius * removeScale;
 
     ctx.save();
     ctx.translate(dot.x, dot.y);
-    ctx.scale(Math.max(0.14, flipScale), 1);
+    ctx.scale(visibleFlipScale, 1);
     ctx.globalAlpha = removeScale;
     ctx.shadowBlur = dot.flipped && dot.hiddenLetter ? 26 : 16;
     ctx.shadowColor = "#fff";
@@ -490,7 +515,7 @@ function drawDots() {
     ctx.fill();
 
     if (dot.flipped && dot.flipProgress > 0.48 && dot.hiddenLetter) {
-      ctx.scale(1 / Math.max(0.14, flipScale), 1);
+      ctx.scale(1 / visibleFlipScale, 1);
       ctx.shadowBlur = 22;
       ctx.fillStyle = "#10131f";
       ctx.font = `900 ${radius * 1.35}px ui-sans-serif, system-ui`;
