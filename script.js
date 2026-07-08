@@ -2,7 +2,6 @@
 const DOT_SPEED = 112;
 const DOT_SPACING = { MIN: 46, MAX: 118 };
 const DOT_VERTICAL_MOTION = { MIN: 10, MAX: 26 };
-const DOT_HORIZONTAL_MOTION = { MIN: 4, MAX: 14 };
 const DOT_MOTION_SPEED = { MIN: 1.4, MAX: 2.8 };
 const PLAYER_SPEED = 430;
 const YOYO_SHOOT_SPEED = 850;
@@ -150,10 +149,8 @@ function createDot(x) {
     y: getStreamY(),
     baseOffsetY: randomRange(-6, 6),
     verticalMotion: randomRange(DOT_VERTICAL_MOTION.MIN, DOT_VERTICAL_MOTION.MAX),
-    horizontalMotion: randomRange(DOT_HORIZONTAL_MOTION.MIN, DOT_HORIZONTAL_MOTION.MAX),
     motionSpeed: randomRange(DOT_MOTION_SPEED.MIN, DOT_MOTION_SPEED.MAX),
     phase: Math.random() * Math.PI * 2,
-    orbitPhase: Math.random() * Math.PI * 2,
     radius: randomRange(DOT_RADIUS - 3, DOT_RADIUS + 4),
     letter: hasLetter ? neededLetter : "",
     flipped: false,
@@ -267,7 +264,7 @@ function updateDots(dt) {
 
 function getDotPosition(dot) {
   return {
-    x: dot.x + Math.cos(dot.phase * 0.85 + dot.orbitPhase) * dot.horizontalMotion,
+    x: dot.x,
     y: dot.y
   };
 }
