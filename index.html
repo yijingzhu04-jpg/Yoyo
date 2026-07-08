@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yo-Yo Letter Link</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <section class="top-panel" aria-label="Game status">
+      <div class="word-progress" id="wordProgress" aria-label="Collected word progress"></div>
+      <div class="timer" id="timer">60</div>
+      <button class="restart-small" id="restartSmall" type="button">Restart</button>
+    </section>
+
+    <section class="instructions" aria-label="Controls">
+      <p><strong>Player 1</strong> reveals: A/D move, W shoot down</p>
+      <p><strong>Player 2</strong> collects: arrows move, Up Arrow shoot up</p>
+    </section>
+
+    <section class="game-stage" id="gameStage" aria-label="Collaborative yo-yo game area">
+      <div class="stream-line"></div>
+      <canvas id="gameCanvas" width="1000" height="620"></canvas>
+
+      <div class="message-screen hidden" id="messageScreen">
+        <h1 id="messageTitle">You Win</h1>
+        <p id="messageText"></p>
+        <button id="restartButton" type="button">Play Again</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
