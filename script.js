@@ -7,8 +7,10 @@ const PLAYER_SPEED = 430;
 const YOYO_SHOOT_SPEED = 850;
 const YOYO_RETURN_SPEED = 960;
 const SHOOT_COOLDOWN = 3;
-const LETTER_PROBABILITY = 0.28;
-const TARGET_WORD = "PHOENIX";
+const LETTER_PROBABILITY = 1;
+const TARGET_WORDS = ["DISCUSS", "REFLECT", "IMPROVE"];
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const FAIR_LETTER_AFTER = 9;
 
 const GAME_DURATION = 60;
 const DOT_RADIUS = 11;
@@ -40,10 +42,11 @@ let particles = [];
 let rings = [];
 let fireworks = [];
 let collected = [];
+let completedWord = "";
 let timeLeft = GAME_DURATION;
 let gameState = "playing";
 let nextDotId = 1;
-let generatedSinceLetter = 0;
+let generatedSinceUsefulLetter = 0;
 let flashTimer = 0;
 let victoryTimer = 0;
 let streamDistance = 0;
@@ -74,10 +77,11 @@ function resetGame() {
   rings = [];
   fireworks = [];
   collected = [];
+  completedWord = "";
   timeLeft = GAME_DURATION;
   gameState = "playing";
   nextDotId = 1;
-  generatedSinceLetter = 0;
+  generatedSinceUsefulLetter = 0;
   flashTimer = 0;
   victoryTimer = 0;
   streamDistance = 0;
@@ -138,12 +142,23 @@ function seedDots() {
   }
 }
 
-// Dot generation favors blanks but guarantees the next needed letter appears often enough.
+// Dot generation uses random A-Z letters, with a small fairness guard so each
+// current word path remains completable within the timer.
 function createDot(worldX) {
-  const neededLetter = TARGET_WORD[collected.length] || "";
-  const mustPlaceLetter = neededLetter && generatedSinceLetter >= 7;
-  const hasLetter = Boolean(neededLetter) && (mustPlaceLetter || Math.random() < LETTER_PROBABILITY);
-  generatedSinceLetter = hasLetter ? 0 : generatedSinceLetter + 1;
+  const nextUsefulLetters = getNextUsefulLetters();
+  const shouldAssist = nextUsefulLetters.length > 0 && generatedSinceUsefulLetter >= FAIR_LETTER_AFTER;
+  const hasLetter = Math.random() < LETTER_PROBABILITY;
+  const letter = hasLetter
+    ? shouldAssist
+      ? nextUsefulLetters[Math.floor(Math.random() * nextUsefulLetters.length)]
+      : getRandomLetter()
+    : "";
+
+  if (letter && nextUsefulLetters.includes(letter)) {
+    generatedSinceUsefulLetter = 0;
+  } else {
+    generatedSinceUsefulLetter += 1;
+  }
 
   return {
     id: nextDotId++,
@@ -154,7 +169,7 @@ function createDot(worldX) {
     motionSpeed: randomRange(DOT_MOTION_SPEED.MIN, DOT_MOTION_SPEED.MAX),
     phase: Math.random() * Math.PI * 2,
     radius: randomRange(DOT_RADIUS - 3, DOT_RADIUS + 4),
-    letter: hasLetter ? neededLetter : "",
+    letter,
     flipped: false,
     flipTime: 0,
     flipBurstDone: false,
@@ -325,24 +340,43 @@ function collectDot(dot) {
   }
 
   dot.collected = true;
-  const expectedLetter = TARGET_WORD[collected.length];
-  if (dot.letter && dot.letter === expectedLetter) {
+  const nextProgress = `${collected.join("")}${dot.letter}`;
+  if (dot.letter && isValidProgress(nextProgress)) {
     collected.push(dot.letter);
     spawnParticles(dotPosition.x, dotPosition.y, "#ffd784", 34, 180);
     rings.push(createRing(dotPosition.x, dotPosition.y, "#ffd784", 18, 96, 0.68));
     updateProgress();
 
-    if (collected.join("") === TARGET_WORD) {
+    completedWord = getCompletedWord();
+    if (completedWord) {
       endGame(true);
     }
   } else {
-    // Stale duplicate letters are punished like empty backs so the word stays ordered.
+    // Wrong letters break the current word path and remove the latest progress.
     if (collected.length > 0) {
       collected.pop();
     }
     updateProgress();
     punishEmptyCollect(dotPosition.x, dotPosition.y);
   }
+}
+
+function getNextUsefulLetters() {
+  const progress = collected.join("");
+  return [...new Set(
+    TARGET_WORDS
+      .filter(word => word.startsWith(progress) && progress.length < word.length)
+      .map(word => word[progress.length])
+  )];
+}
+
+function isValidProgress(progress) {
+  return TARGET_WORDS.some(word => word.startsWith(progress));
+}
+
+function getCompletedWord() {
+  const progress = collected.join("");
+  return TARGET_WORDS.find(word => word === progress) || "";
 }
 
 function punishEmptyCollect(x, y) {
@@ -361,13 +395,13 @@ function endGame(won) {
   if (won) {
     arena.classList.add("win-glow");
     overlayKicker.textContent = "Victory";
-    overlayTitle.textContent = "PHOENIX COMPLETE!";
-    overlayText.textContent = "The hidden letters have risen from the stream.";
+    overlayTitle.textContent = `${completedWord} COMPLETE!`;
+    overlayText.textContent = "One idea path has been completed from the stream.";
     launchVictory();
   } else {
     overlayKicker.textContent = "Time Out";
     overlayTitle.textContent = "TIME OUT";
-    overlayText.textContent = "The stream fades before PHOENIX is complete.";
+    overlayText.textContent = `Complete ${TARGET_WORDS.join(" / ")} before the stream fades.`;
     spawnParticles(width * 0.5, height * 0.5, "#ff425f", 44, 150);
   }
 }
@@ -615,7 +649,8 @@ function drawVictoryGlow() {
 }
 
 function updateProgress() {
-  const slots = TARGET_WORD.split("").map((letter, index) => collected[index] || "_");
+  const maxLength = Math.max(...TARGET_WORDS.map(word => word.length));
+  const slots = Array.from({ length: maxLength }, (letter, index) => collected[index] || "_");
   progressEl.textContent = slots.join(" ");
 }
 
@@ -648,6 +683,10 @@ function clamp(value, min, max) {
 
 function randomRange(min, max) {
   return min + Math.random() * (max - min);
+}
+
+function getRandomLetter() {
+  return ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
 }
 
 function lerp(start, end, progress) {

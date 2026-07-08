@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PHOENIX Yo-Yo Relay</title>
+  <title>Word Yo-Yo Relay</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,14 +14,14 @@
       <div class="cooldown" id="cooldown">P1 READY</div>
     </header>
 
-    <section class="arena" id="arena" aria-label="Two-player PHOENIX game">
+    <section class="arena" id="arena" aria-label="Two-player word relay game">
       <canvas id="gameCanvas"></canvas>
 
       <div class="overlay hidden" id="overlay" role="status" aria-live="polite">
         <div class="overlay-card">
           <p class="kicker" id="overlayKicker">Victory</p>
-          <h1 id="overlayTitle">PHOENIX COMPLETE!</h1>
-          <p id="overlayText">The hidden letters have risen from the stream.</p>
+          <h1 id="overlayTitle">WORD COMPLETE!</h1>
+          <p id="overlayText">Complete DISCUSS, REFLECT, or IMPROVE.</p>
           <p class="restart-hint">Press <kbd>R</kbd> to restart</p>
           <button id="restartButton" type="button">Play Again</button>
         </div>
@@ -31,6 +31,7 @@
     <footer class="instructions">
       <div><strong>Player 1 Reveal:</strong> A / D to move, W to shoot down.</div>
       <div><strong>Player 2 Collect:</strong> Left / Right to move, Up Arrow to shoot up.</div>
+      <div class="target-line"><strong>Targets:</strong> DISCUSS / REFLECT / IMPROVE</div>
       <div class="restart-line">Press <kbd>R</kbd> to restart</div>
     </footer>
   </main>
