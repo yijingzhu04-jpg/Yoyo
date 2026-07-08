@@ -1,6 +1,9 @@
 // Configurable game variables.
 const DOT_SPEED = 112;
 const DOT_SPACING = { MIN: 46, MAX: 118 };
+const DOT_VERTICAL_MOTION = { MIN: 10, MAX: 26 };
+const DOT_HORIZONTAL_MOTION = { MIN: 4, MAX: 14 };
+const DOT_MOTION_SPEED = { MIN: 1.4, MAX: 2.8 };
 const PLAYER_SPEED = 430;
 const YOYO_SHOOT_SPEED = 850;
 const YOYO_RETURN_SPEED = 960;
@@ -144,14 +147,19 @@ function createDot(x) {
   return {
     id: nextDotId++,
     x,
-    y: getStreamY() + randomRange(-14, 14),
+    y: getStreamY(),
+    baseOffsetY: randomRange(-6, 6),
+    verticalMotion: randomRange(DOT_VERTICAL_MOTION.MIN, DOT_VERTICAL_MOTION.MAX),
+    horizontalMotion: randomRange(DOT_HORIZONTAL_MOTION.MIN, DOT_HORIZONTAL_MOTION.MAX),
+    motionSpeed: randomRange(DOT_MOTION_SPEED.MIN, DOT_MOTION_SPEED.MAX),
+    phase: Math.random() * Math.PI * 2,
+    orbitPhase: Math.random() * Math.PI * 2,
     radius: randomRange(DOT_RADIUS - 3, DOT_RADIUS + 4),
     letter: hasLetter ? neededLetter : "",
     flipped: false,
     flipTime: 0,
     flipBurstDone: false,
     collected: false,
-    wobble: Math.random() * Math.PI * 2,
     alpha: randomRange(0.82, 1)
   };
 }
@@ -245,8 +253,8 @@ function triggerCooldown(player) {
 function updateDots(dt) {
   for (const dot of dots) {
     dot.x -= DOT_SPEED * dt;
-    dot.wobble += dt * 2.6;
-    dot.y += Math.sin(dot.wobble) * 0.018;
+    dot.phase += dt * dot.motionSpeed;
+    dot.y = getStreamY() + dot.baseOffsetY + Math.sin(dot.phase) * dot.verticalMotion;
   }
 
   dots = dots.filter(dot => dot.x > -DOT_SPACING.MAX && !dot.collected);
@@ -257,13 +265,21 @@ function updateDots(dt) {
   }
 }
 
+function getDotPosition(dot) {
+  return {
+    x: dot.x + Math.cos(dot.phase * 0.85 + dot.orbitPhase) * dot.horizontalMotion,
+    y: dot.y
+  };
+}
+
 function updateFlips(dt) {
   for (const dot of dots) {
     if (dot.flipped && dot.flipTime < FLIP_DURATION) {
       dot.flipTime = Math.min(FLIP_DURATION, dot.flipTime + dt);
       if (!dot.flipBurstDone && dot.flipTime > FLIP_DURATION * 0.45) {
         dot.flipBurstDone = true;
-        spawnParticles(dot.x, dot.y, "#ffffff", 16, 90);
+        const dotPosition = getDotPosition(dot);
+        spawnParticles(dotPosition.x, dotPosition.y, "#ffffff", 16, 90);
       }
     }
   }
@@ -275,7 +291,8 @@ function updateCollisions() {
 
     for (const dot of dots) {
       if (dot.collected) continue;
-      const distance = Math.hypot(player.x - dot.x, player.yoyoY - dot.y);
+      const dotPosition = getDotPosition(dot);
+      const distance = Math.hypot(player.x - dotPosition.x, player.yoyoY - dotPosition.y);
       if (distance > HIT_RADIUS + dot.radius) continue;
 
       player.shotHit = true;
@@ -299,8 +316,10 @@ function revealDot(dot) {
 }
 
 function collectDot(dot) {
+  const dotPosition = getDotPosition(dot);
+
   if (!dot.flipped) {
-    spawnParticles(dot.x, dot.y, "#7d8da8", 10, 70);
+    spawnParticles(dotPosition.x, dotPosition.y, "#7d8da8", 10, 70);
     return;
   }
 
@@ -308,8 +327,8 @@ function collectDot(dot) {
   const expectedLetter = TARGET_WORD[collected.length];
   if (dot.letter && dot.letter === expectedLetter) {
     collected.push(dot.letter);
-    spawnParticles(dot.x, dot.y, "#ffd784", 34, 180);
-    rings.push(createRing(dot.x, dot.y, "#ffd784", 18, 96, 0.68));
+    spawnParticles(dotPosition.x, dotPosition.y, "#ffd784", 34, 180);
+    rings.push(createRing(dotPosition.x, dotPosition.y, "#ffd784", 18, 96, 0.68));
     updateProgress();
 
     if (collected.join("") === TARGET_WORD) {
@@ -321,7 +340,7 @@ function collectDot(dot) {
       collected.pop();
     }
     updateProgress();
-    punishEmptyCollect(dot.x, dot.y);
+    punishEmptyCollect(dotPosition.x, dotPosition.y);
   }
 }
 
@@ -468,13 +487,14 @@ function drawStreamGuide() {
 
 function drawDots() {
   for (const dot of dots) {
+    const dotPosition = getDotPosition(dot);
     const progress = dot.flipped ? dot.flipTime / FLIP_DURATION : 0;
     const scaleX = dot.flipped ? Math.max(0.13, Math.abs(Math.cos(progress * Math.PI))) : 1;
     const showingBack = dot.flipped && progress > 0.5;
     const glow = dot.letter && showingBack ? "rgba(255, 215, 132, 0.85)" : `rgba(255,255,255,${0.65 * dot.alpha})`;
 
     ctx.save();
-    ctx.translate(dot.x, dot.y);
+    ctx.translate(dotPosition.x, dotPosition.y);
     ctx.scale(scaleX, 1);
     ctx.shadowColor = glow;
     ctx.shadowBlur = showingBack ? 28 : 18;
@@ -492,7 +512,7 @@ function drawDots() {
       ctx.fillStyle = "#111722";
       ctx.shadowColor = "rgba(255, 215, 132, 0.92)";
       ctx.shadowBlur = 16;
-      ctx.fillText(dot.letter, dot.x, dot.y + 0.5);
+      ctx.fillText(dot.letter, dotPosition.x, dotPosition.y + 0.5);
       ctx.restore();
     }
   }
