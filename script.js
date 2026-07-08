@@ -8,7 +8,8 @@ const YOYO_SHOOT_SPEED = 850;
 const YOYO_RETURN_SPEED = 960;
 const SHOOT_COOLDOWN = 3;
 const LETTER_PROBABILITY = 1;
-const TARGET_WORDS = ["DISCUSS", "REFLECT", "IMPROVE"];
+const TARGET_WORDS = ["BOUNCE"];
+const STARTING_PROGRESS = "B";
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const FAIR_LETTER_AFTER = 9;
 
@@ -76,7 +77,7 @@ function resetGame() {
   particles = [];
   rings = [];
   fireworks = [];
-  collected = [];
+  collected = STARTING_PROGRESS.split("");
   completedWord = "";
   timeLeft = GAME_DURATION;
   gameState = "playing";
@@ -353,7 +354,7 @@ function collectDot(dot) {
     }
   } else {
     // Wrong letters break the current word path and remove the latest progress.
-    if (collected.length > 0) {
+    if (collected.length > STARTING_PROGRESS.length) {
       collected.pop();
     }
     updateProgress();
@@ -396,12 +397,12 @@ function endGame(won) {
     arena.classList.add("win-glow");
     overlayKicker.textContent = "Victory";
     overlayTitle.textContent = `${completedWord} COMPLETE!`;
-    overlayText.textContent = "One idea path has been completed from the stream.";
+    overlayText.textContent = "The BOUNCE path has been completed from the stream.";
     launchVictory();
   } else {
     overlayKicker.textContent = "Time Out";
     overlayTitle.textContent = "TIME OUT";
-    overlayText.textContent = `Complete ${TARGET_WORDS.join(" / ")} before the stream fades.`;
+    overlayText.textContent = "Complete BOUNCE before the stream fades.";
     spawnParticles(width * 0.5, height * 0.5, "#ff425f", 44, 150);
   }
 }
