@@ -27,6 +27,7 @@ let lastFrameTime = 0;
 let timeLeft = ROUND_SECONDS;
 let roundStartTime = 0;
 let gameRunning = false;
+let animationFrameId = null;
 
 const players = {
   top: {
@@ -86,6 +87,10 @@ function resetRestingYoyos() {
 }
 
 function startRound() {
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId);
+  }
+
   selectedWord = WORDS[Math.floor(Math.random() * WORDS.length)];
   collectedLetters = [];
   particles = [];
@@ -102,7 +107,7 @@ function startRound() {
   createProgressDisplay();
   createBubbleStream();
   hideMessage();
-  requestAnimationFrame(gameLoop);
+  animationFrameId = requestAnimationFrame(gameLoop);
 }
 
 function createProgressDisplay() {
@@ -191,7 +196,7 @@ function gameLoop(now) {
     return;
   }
 
-  requestAnimationFrame(gameLoop);
+  animationFrameId = requestAnimationFrame(gameLoop);
 }
 
 function update(delta, elapsed) {
@@ -306,9 +311,12 @@ function checkCollisions() {
     }
 
     if (players.bottom.shooting && isTouching(players.bottom, bubble)) {
-      tryCollectBubble(bubble);
-      players.bottom.shooting = false;
-      players.bottom.returning = true;
+      const collectionReacted = tryCollectBubble(bubble);
+
+      if (collectionReacted) {
+        players.bottom.shooting = false;
+        players.bottom.returning = true;
+      }
     }
   }
 }
@@ -330,7 +338,7 @@ function revealBubble(bubble) {
 function tryCollectBubble(bubble) {
   // Player 2 can only collect revealed balls that contain the next needed letter.
   if (!bubble.revealed || bubble.empty) {
-    return;
+    return false;
   }
 
   const nextIndex = collectedLetters.length;
@@ -340,10 +348,11 @@ function tryCollectBubble(bubble) {
     bubble.active = false;
     createParticleBurst(bubble.x, bubble.y, bubble.letter);
     updateProgressDisplay();
-    return;
+    return true;
   }
 
   bubble.shake = 1;
+  return true;
 }
 
 function createParticleBurst(x, y, letter) {
@@ -540,6 +549,7 @@ function updateTimer() {
 
 function endRound(won) {
   gameRunning = false;
+  animationFrameId = null;
   draw(performance.now() / 1000);
 
   if (won) {
