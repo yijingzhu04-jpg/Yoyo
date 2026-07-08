@@ -46,6 +46,7 @@ let nextDotId = 1;
 let generatedSinceLetter = 0;
 let flashTimer = 0;
 let victoryTimer = 0;
+let streamDistance = 0;
 
 const players = {
   top: createPlayer("top"),
@@ -79,6 +80,7 @@ function resetGame() {
   generatedSinceLetter = 0;
   flashTimer = 0;
   victoryTimer = 0;
+  streamDistance = 0;
   arena.classList.remove("error-flash", "win-glow");
   overlay.classList.add("hidden");
   updateProgress();
@@ -129,15 +131,15 @@ function getStreamY() {
 function seedDots() {
   if (!width || !height) return;
   dots = [];
-  let x = -DOT_SPACING.MAX;
-  while (x < width + DOT_SPACING.MAX * 2) {
-    x += randomRange(DOT_SPACING.MIN, DOT_SPACING.MAX);
-    dots.push(createDot(x));
+  let worldX = -DOT_SPACING.MAX;
+  while (worldX < width + DOT_SPACING.MAX * 2) {
+    worldX += randomRange(DOT_SPACING.MIN, DOT_SPACING.MAX);
+    dots.push(createDot(worldX));
   }
 }
 
 // Dot generation favors blanks but guarantees the next needed letter appears often enough.
-function createDot(x) {
+function createDot(worldX) {
   const neededLetter = TARGET_WORD[collected.length] || "";
   const mustPlaceLetter = neededLetter && generatedSinceLetter >= 7;
   const hasLetter = Boolean(neededLetter) && (mustPlaceLetter || Math.random() < LETTER_PROBABILITY);
@@ -145,7 +147,7 @@ function createDot(x) {
 
   return {
     id: nextDotId++,
-    x,
+    worldX,
     y: getStreamY(),
     baseOffsetY: randomRange(-6, 6),
     verticalMotion: randomRange(DOT_VERTICAL_MOTION.MIN, DOT_VERTICAL_MOTION.MAX),
@@ -173,7 +175,7 @@ function updateGame(delta) {
     }
 
     updatePlayers(dt);
-    updateDots(dt);
+    updateDots(delta, dt);
     updateCollisions();
   }
 
@@ -247,16 +249,18 @@ function triggerCooldown(player) {
   spawnParticles(player.x, getStreamY(), "#ff425f", 18, 130);
 }
 
-function updateDots(dt) {
+function updateDots(movementDt, visualDt) {
+  streamDistance += DOT_SPEED * movementDt;
+
   for (const dot of dots) {
-    dot.x -= DOT_SPEED * dt;
-    dot.phase += dt * dot.motionSpeed;
+    dot.phase += visualDt * dot.motionSpeed;
     dot.y = getStreamY() + dot.baseOffsetY + Math.sin(dot.phase) * dot.verticalMotion;
   }
 
-  dots = dots.filter(dot => dot.x > -DOT_SPACING.MAX && !dot.collected);
-  let rightEdge = dots.reduce((max, dot) => Math.max(max, dot.x), -DOT_SPACING.MAX);
-  while (rightEdge < width + DOT_SPACING.MAX) {
+  dots = dots.filter(dot => getDotPosition(dot).x > -DOT_SPACING.MAX && !dot.collected);
+  let rightEdge = dots.reduce((max, dot) => Math.max(max, dot.worldX), streamDistance - DOT_SPACING.MAX);
+  const targetRightEdge = streamDistance + width + DOT_SPACING.MAX;
+  while (rightEdge < targetRightEdge) {
     rightEdge += randomRange(DOT_SPACING.MIN, DOT_SPACING.MAX);
     dots.push(createDot(rightEdge));
   }
@@ -264,7 +268,7 @@ function updateDots(dt) {
 
 function getDotPosition(dot) {
   return {
-    x: dot.x,
+    x: dot.worldX - streamDistance,
     y: dot.y
   };
 }
