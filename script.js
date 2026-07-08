@@ -507,7 +507,7 @@ function drawDots() {
       ctx.font = `900 ${Math.round(dot.radius * 1.25)}px ui-sans-serif, system-ui, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = "#111722";
+      ctx.fillStyle = "#ffffff";
       ctx.shadowColor = "rgba(255, 215, 132, 0.92)";
       ctx.shadowBlur = 16;
       ctx.fillText(dot.letter, dotPosition.x, dotPosition.y + 0.5);
