@@ -495,10 +495,11 @@ function drawDots() {
     ctx.scale(scaleX, 1);
     ctx.shadowColor = glow;
     ctx.shadowBlur = showingBack ? 28 : 18;
-    ctx.fillStyle = showingBack ? "rgba(245,250,255,0.95)" : `rgba(255,255,255,${dot.alpha})`;
+    ctx.strokeStyle = showingBack ? "rgba(245,250,255,0.95)" : `rgba(255,255,255,${dot.alpha})`;
+    ctx.lineWidth = showingBack ? 2.6 : 2.2;
     ctx.beginPath();
     ctx.arc(0, 0, dot.radius, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.stroke();
     ctx.restore();
 
     if (showingBack && dot.letter) {
